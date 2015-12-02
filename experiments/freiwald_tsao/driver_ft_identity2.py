@@ -4,6 +4,7 @@ import cPickle as pk
 import tabular as tb
 import itertools
 import copy
+from yamutils import fast
 import sys
 import dldata.stimulus_sets.freiwald_tsao as ft
 from mturkutils.base import MatchToSampleFromDLDataExperiment
@@ -20,21 +21,32 @@ REPEATS_PER_QE_IMG = 1
 ACTUAL_TRIALS_PER_HIT = 200
 LEARNING_PERIOD = len(good_ids)
 
-repeat_inds = []
-r_ind = 0
-for ident in good_ids:
-    _inds = (meta['identity'] == ident).nonzero()[0]
-    r_ind_l = r_ind % len(_inds)
-    repeat_inds.append(_inds[r_ind_l])
-    r_ind += 1
 
-practice_inds = []
-r_ind = 1
-for ident in good_ids:
-    _inds = (meta['identity'] == ident).nonzero()[0]
-    r_ind_l = r_ind % len(_inds)
-    practice_inds.append(_inds[r_ind_l])
-    r_ind += 1
+def get_repeats_practices(seed):
+    perm = np.random.RandomState(seed=seed).permutation(len(meta))
+    meta0 = meta[perm]
+
+    repeat_inds = []
+    r_ind = 0
+    for ident in good_ids:
+        _inds = (meta0['identity'] == ident).nonzero()[0]
+        r_ind_l = r_ind % len(_inds)
+        repeat_inds.append(_inds[r_ind_l])
+        r_ind += 1
+
+    repeat_inds = fast.isin(meta['id'], meta0[repeat_inds]['id']).nonzero()[0]
+
+    practice_inds = []
+    r_ind = 1
+    for ident in good_ids:
+        _inds = (meta0['identity'] == ident).nonzero()[0]
+        r_ind_l = r_ind % len(_inds)
+        practice_inds.append(_inds[r_ind_l])
+        r_ind += 1
+
+    practice_inds = fast.isin(meta['id'], meta0[practice_inds]['id']).nonzero()[0]
+
+    return repeat_inds, practice_inds
 
 
 def get_exp(sandbox=True, dummy_upload=True):
@@ -45,7 +57,7 @@ def get_exp(sandbox=True, dummy_upload=True):
 
     #inds = np.arange(len(meta))
 
-    
+
     preproc = dataset.default_preproc
     #preproc['flip_tb'] = True
     image_bucket_name = 'freiwald_tsao_2010'
@@ -73,7 +85,7 @@ def get_exp(sandbox=True, dummy_upload=True):
     additionalrules = [{'old': 'LEARNINGPERIODNUMBER',
                         'new':  str(LEARNING_PERIOD)}]
 
-    trials_per_hit = ACTUAL_TRIALS_PER_HIT + REPEATS_PER_QE_IMG * len(repeat_inds) + LEARNING_PERIOD  
+    trials_per_hit = ACTUAL_TRIALS_PER_HIT + REPEATS_PER_QE_IMG * len(repeat_inds) + LEARNING_PERIOD
     exp = MatchToSampleFromDLDataExperiment(
             htmlsrc='ft_identity2.html',
             htmldst='ft_identity2_n%05d.html',
@@ -125,7 +137,7 @@ def get_exp(sandbox=True, dummy_upload=True):
 
     offsets = np.arange(ACTUAL_TRIALS_PER_HIT - 1, -1, -ACTUAL_TRIALS_PER_HIT / float(len(ind_repeats))
             ).round().astype('int')
-            
+
     print(len(offsets), offsets)
 
     print('a', len(exp._trials['imgFiles']))
@@ -162,7 +174,7 @@ def get_exp(sandbox=True, dummy_upload=True):
 
 
     print('d', len(exp._trials['imgFiles']))
-    
+
     print '** n_applied_hits =', n_applied_hits
     print '** len for each in _trials =', \
             {e: len(exp._trials[e]) for e in exp._trials}
