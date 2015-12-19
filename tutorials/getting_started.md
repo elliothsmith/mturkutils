@@ -19,3 +19,4 @@ The other _username_ and _password_ you will need is for the Amazon Mechanical T
 
 ![General Workflow] (https://raw.githubusercontent.com/dicarlolab/dicarlolab101/master/mturk_files/general_workflow.png?token=AKMnBtRqank3HDI1px-2e8-bk3fvTEFKks5WfG7XwA%3D%3D)
 
+Ha has provided a tutorial that deals with each of the steps. Click the tutorial link below to see it. ([Tutorial](https://github.com/dicarlolab/mturkutils/blob/master/tutorials/Hands-on%20tutorial.pdf))
