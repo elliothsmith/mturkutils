@@ -8,3 +8,4 @@ Directory structure:
 * experiments: All MTurk experiment files
 * scripts: Command line interfaces common to all experiments
 * lib: All commonly used (web-related, mostly javascript) libraries
+* tutorials: Learn how to use this package
