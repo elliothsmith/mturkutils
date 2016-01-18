@@ -57,7 +57,7 @@ exp.updateDBwithHITs(hitids)
    `ssh -f -N -L 22334:localhost:22334 <username>@dicarlo5.mit.edu`
 2. Type `ipython`
 3. Within ipython:
-```
+```python
 import pymongo as pm
 import numpy as np
 
@@ -65,7 +65,7 @@ mongo_conn = pm.Connection(host='localhost',port=22334)
 db = mongo_conn['mturk']
 coll = db['your_collection_name']
 
-#To look inside collection
+# To look inside a collection
 for doc in coll.find():
   imData = doc['ImgData’]
   ...
