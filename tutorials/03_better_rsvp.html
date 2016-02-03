@@ -1,0 +1,46 @@
+<html>
+<head>
+<link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.8.0.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+<script type="text/javascript" src="dltk.js"></script>
+<script>
+// BEGIN OF JAVASCRIPT SECTION
+// Target image: http://dicarlolab.mit.edu/sites/dicarlolab.mit.edu/files/IMG_0493.JPG
+// Fixation dot: https://s3.amazonaws.com/task_images/fixation_360x360.png
+// Blank: https://s3.amazonaws.com/task_images/blank_360x360.png
+var ctx;
+
+function update() {
+    console.log('clicked!!');
+    $("#work_area").html('');
+}
+
+function enable_button() {
+    $('#begintask').click(update);
+}
+
+function main() {
+    ctx = dltk.getOnScreenContextFromCanvas('img_area');
+    dltk.prepareResources(
+        [['http://dicarlolab.mit.edu/sites/dicarlolab.mit.edu/files/IMG_0493.JPG'],
+        ['https://s3.amazonaws.com/task_images/fixation_360x360.png'],
+        ['https://s3.amazonaws.com/task_images/blank_360x360.png']],
+        [[ctx], [ctx], [ctx]],
+        enable_button
+    );
+}
+
+$(document).ready(main);
+// END OF JAVASCRIPT SECTION
+</script>
+</head>
+<body bgcolor='#7f7f7f'>
+<button id="begintask" value="Begin!" style="height:30px; width:70px;">Begin!</button>
+<div>
+    <canvas id="img_area" width="360" height="360" src=""></canvas>
+</div>
+<div id="work_area">
+</div>
+</body>
+</html>
