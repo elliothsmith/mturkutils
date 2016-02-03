@@ -4,9 +4,9 @@ We use Amazon Mechanical Turk (MTurk) for high-throughput web-based human psycho
 
 ## Setup
 
-Before you begin launching any task, make sure you have contacted the lab manager and have taken the appropriate [Collaborative Institutional Training Initiative](http://couhes.mit.edu/training-research-involving-human-subjects) (CITI) courses. 
+1. **Training for human subjects:** Before you begin launching any task, make sure you have contacted the lab manager and have taken the appropriate [Collaborative Institutional Training Initiative](http://couhes.mit.edu/training-research-involving-human-subjects) (CITI) courses. 
 
-You will also need credentials separately for Amazon S3 and MTurk. Someone from the lab will help you get those credentials. Once you get them go to the home folder of [mh17](http://mindhive.mit.edu/intro) (simply `ssh username@mh17.mit.edu`) and create a file named '.boto' The contents of the file should look like:
+2. **Amazon Credentials:** You will also need credentials separately for Amazon S3 and MTurk. Someone from the lab will help you get those credentials. Once you get them go to the home folder of [mh17](http://mindhive.mit.edu/intro) (simply `ssh username@mh17.mit.edu`) and create a file named '.boto' The contents of the file should look like:
 
     [Credentials]
     aws_access_key_id=AKEYOUWILLGET
@@ -15,9 +15,9 @@ You will also need credentials separately for Amazon S3 and MTurk. Someone from 
     AWS_ACCESS_KEY_ID = AKEYOUWILLGET
     AWS_SECRET_ACCESS_KEY = thesecretkeyuwillget
 
-The other _username_ and _password_ you will need is for the Amazon Mechanical Turk Requester account. This is where you can check how many **HITs** (_Human Intelligence Tasks_) you have launched and how many subjects have responded so far etc. You can also directly download the results and work off it, but it is suggested that you use the existing lab tools (i.e., mturkutils) to organize the process and make it more efficient and the data easily shareable.
+3. **Access to MTurk account:** The other _username_ and _password_ you will need is for the Amazon Mechanical Turk Requester account. This is where you can check how many **HITs** (_Human Intelligence Tasks_) you have launched and how many subjects have responded so far etc. You can also directly download the results and work off it, but it is suggested that you use the existing lab tools (i.e., mturkutils) to organize the process and make it more efficient and the data easily shareable.
 
-Finally, ask somebody in the lab to get added to the lab's MTurk mailing list, so that you can receive workers' emails in case something is up.
+4. **MTurk mailing list:** Ask somebody in the lab to get added to the lab's MTurk mailing list, so that you can receive workers' emails in case something is up.
 
 ## General workflow
 
@@ -32,7 +32,7 @@ Briefly, here are the steps to get your experiment going on MTurk:
 - HTMLs for each HIT are stored on the lab's [S3 space](https://aws.amazon.com/)
 - HITs meant for testing or for in-lab participants are managed via [MTurk Developer Sandbox](https://workersandbox.mturk.com)
 - HITs meant for data collection are managed via [MTurk](https://www.mturk.com)
-- Data is stored in a MongoDB on DiCarlo5 (dicarlo5.mit.edu), and you have to put it there yourself. MTurk does not store the collected data forever, so you should always update the database with your data after the experiment is over.
+- Data is stored in a MongoDB on DiCarlo5 (`dicarlo5.mit.edu`), and you have to put it there yourself. MTurk does not store the collected data forever, so you should always update the database with your data after the experiment is over.
 
 ### Getting started
 
@@ -75,20 +75,18 @@ exp.updateDBwithHITs(hitids)
 
 ### Retrieve data stored in dicarlo5
 
-1. Open terminal locally and tunnel into dicarlo5:
-   `ssh -f -N -L 22334:localhost:22334 <username>@dicarlo5.mit.edu`
-2. Type `ipython`
-3. Within ipython:
 ```python
-import pymongo as pm
-import numpy as np
+import pymongo
 
-mongo_conn = pm.Connection(host='localhost',port=22334)
+mongo_conn = pymongo.Connection(host='localhost', port=22334)
 db = mongo_conn['mturk']
 coll = db['your_collection_name']
 
 # To look inside a collection
 for doc in coll.find():
-  imData = doc['ImgData’]
+  data = doc['ImgData’]
   ...
 ```
+In case you need to establish an ssh tunnel into dicarlo5:
+
+`ssh -f -N -L 22334:localhost:22334 <username>@dicarlo5.mit.edu`
