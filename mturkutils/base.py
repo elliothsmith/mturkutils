@@ -572,10 +572,12 @@ class Experiment(object):
 
             if verbose:
                 print(str(urlnum) + ': ' + url + ', ' + self.hitids[-1])
+
         if hitidslog is None:
-            file_string = self.log_prefix + str(self.htypid) + '_' + \
-                    str(datetime.datetime.now()) + '.pkl'
-            file_string = file_string.replace(' ', '_')
+            prefix = 'sandbox' if self.sandbox else 'production'
+            date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S.%f")
+            file_string = self.log_prefix  + '_'.join([self.bucket_name, prefix,
+                                    'hitids', str(self.htypid), date]) + '.pkl'
         else:
             file_string = hitidslog
         pk.dump(self.hitids, file(file_string, 'wb'))
