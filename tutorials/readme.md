@@ -75,6 +75,12 @@ exp.updateDBwithHITs(hitids)
 
 ### Retrieve data stored in dicarlo5
 
+First, you need to establish an ssh tunnel into dicarlo5:
+
+`ssh -f -N -L 22334:localhost:22334 <username>@dicarlo5.mit.edu`
+
+Next, you can get the data like this:
+
 ```python
 import pymongo
 
@@ -87,6 +93,4 @@ for doc in coll.find():
   data = doc['ImgData’]
   ...
 ```
-In case you need to establish an ssh tunnel into dicarlo5:
 
-`ssh -f -N -L 22334:localhost:22334 <username>@dicarlo5.mit.edu`
