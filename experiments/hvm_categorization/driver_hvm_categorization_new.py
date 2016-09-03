@@ -10,9 +10,9 @@ from mturkutils.base import MatchToSampleFromDLDataExperiment
 
 REPEATS_PER_QE_IMG = 4
 ACTUAL_TRIALS_PER_HIT = 144
-LEARNING_PERIOD = 16
+LEARNING_PERIOD = 16                                                                                                    # number of practice trials?
 
-repeat_inds = [3440, 3282, 3321, 3802, 5000, 3202, 4041, 4200]
+repeat_inds = [3440, 3282, 3321, 3802, 5000, 3202, 4041, 4200]                                                          # The 8 of these will be repeated 4 times.
 
 practice_inds = [880, 720, 760, 1240, 2440, 640, 1480, 1640, 3480, 3360, 4560, 3840, 5040, 3240, 4160, 4240]
 
@@ -20,18 +20,18 @@ def get_exp(sandbox=True, dummy_upload=True):
 
     dataset = hvm.HvMWithDiscfade()
     meta = dataset.meta
-    n_hits_from_data = len(meta) / ACTUAL_TRIALS_PER_HIT
+    n_hits_from_data = len(meta) / ACTUAL_TRIALS_PER_HIT                                                                # 40 trials per image? what?
     categories = dataset.categories
-    combs = [categories]
+    combs = [categories]                                                                                                # List of tuples of syntsets to measure confusions for
 
     inds = np.arange(len(meta))
     preproc = None
     image_bucket_name = 'hvm_timing'
-    urls = dataset.publish_images(inds, preproc,
+    urls = dataset.publish_images(inds, preproc,                                                                        # Upload images from this dldata set to an s3 bucket.
                                   image_bucket_name,
                                   dummy_upload=dummy_upload)
 
-    base_url = 'https://canonical_images.s3.amazonaws.com/'
+    base_url = 'https://canonical_images.s3.amazonaws.com/'                                                             # direct urls to the response icons.
     response_images = [{
         'urls': [base_url + cat + '.png' for cat in categories],
         'meta': [{'category': 'Animals'},
@@ -58,7 +58,7 @@ def get_exp(sandbox=True, dummy_upload=True):
     additionalrules = [{'old': 'LEARNINGPERIODNUMBER',
                         'new':  str(LEARNING_PERIOD)}]
 
-    trials_per_hit = ACTUAL_TRIALS_PER_HIT + 32 + 16
+    trials_per_hit = ACTUAL_TRIALS_PER_HIT + 32 + 16 # Plus learning trials, + 8 * 4 repeats (quality checking?)
     exp = MatchToSampleFromDLDataExperiment(
             htmlsrc='hvm_basic_categorization_new.html',
             htmldst='hvm_basic_categorization_new_n%05d.html',
@@ -82,7 +82,7 @@ def get_exp(sandbox=True, dummy_upload=True):
             )
 
     # -- create trials
-    exp.createTrials(sampling='without-replacement', verbose=1)
+    exp.createTrials(sampling='without-replacement', verbose=1) # without replacement: no same images will be presented across the entire population of subjects
     n_total_trials = len(exp._trials['imgFiles'])
     assert n_total_trials == 90 * 64 * mult, n_total_trials
 
