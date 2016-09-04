@@ -3,7 +3,7 @@ import os
 import json
 from bson import json_util
 import shutil as sh
-from yamutils.mongo import SONify
+from .base import SONify
 
 
 def chunker(seq, size):
@@ -138,7 +138,7 @@ def validate_html_files(filenames, ruledict,
                 trials[_k] = trials0[_k]
 
     if trials_org is not None:
-        assert trials_org.keys() == trials.keys()
+        assert sorted(trials_org.keys()) == sorted(trials.keys())
         for ind in trials_org:
             assert len(trials[ind]) % len(trials_org[ind]) == 0
             mult = len(trials[ind]) / len(trials_org[ind])

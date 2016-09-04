@@ -67,7 +67,7 @@ additionalrules = [{'old': 'LEARNINGPERIODNUMBER',
                     'new':  str(LEARNING_PERIOD)}]
 exp = HvMAreaBBoxExperiment(htmlsrc = 'hvm_area_bbox_newtiming.html',
                               htmldst = 'hvm_area_bbox_newtiming_n%04d.html',
-                              othersrc = ['raphael.min.js', 'intersect.js', '../../lib/dltk.js'],
+                              othersrc = ['raphael.min.js', 'intersect.js', '../../mturkutils/lib/dltk.js'],
                               sandbox = False,
                               title = 'Minimum-area Bounding Box Judgement',
                               reward = 0.35,

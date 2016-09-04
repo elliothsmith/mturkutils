@@ -80,7 +80,7 @@ def get_exp(sandbox=True, debug=False):
             html_data=html_data,
             tmpdir='tmp',
             frame_height_pix=1200,
-            othersrc=['../../lib/dltk.js', '../../lib/dltkexpr.js', '../../lib/dltkrsvp.js'],   # noqa
+            othersrc=['../../mturkutils/lib/dltk.js', '../../mturkutils/lib/dltkexpr.js', '../../mturkutils/lib/dltkrsvp.js'],   # noqa
             )
 
     # -- create trials

@@ -1,4 +1,4 @@
-# Hans-on tutorial for high-throughput web-based human psychophysics
+# Hands-on tutorial for high-throughput web-based human psychophysics
 
 *Ha Hong*
 
@@ -60,7 +60,7 @@ Cmd-Opt-I (OSX) or Ctrl-Shift-I (Windows)
 > e;
 > d; // due to assignment by reference, not value!!
      // one should be careful. non-trivial to do “deep-copy” in JS
-     
+
 > function f1(x) { return x + 1; }
 > f1(2);
 

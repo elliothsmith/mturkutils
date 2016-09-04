@@ -136,7 +136,7 @@ def get_exp(sandbox=True, dummy_upload=True):
             bucket_name='freiwald_tsao_identification',
             trials_per_hit=trials_per_hit,
             frame_height_pix=1200,
-            othersrc = ['../../lib/dltk.js', '../../lib/dltkexpr.js', '../../lib/dltkrsvp.js'],
+            othersrc = ['../../mturkutils/lib/dltk.js', '../../mturkutils/lib/dltkexpr.js', '../../mturkutils/lib/dltkrsvp.js'],
             additionalrules=additionalrules,
             log_prefix='freiwald_tsao_identification_',
             html_data = html_data

@@ -55,7 +55,7 @@ additionalrules = [{'old': 'LEARNINGPERIODNUMBER',
                     'new':  str(LEARNING_PERIOD)}]
 exp = HvMPositionExperiment(htmlsrc = 'hvm_position_newtiming.html',
                               htmldst = 'hvm_position_newtiming_n%04d.html',
-                              othersrc = ['raphael.min.js', '../../lib/dltk.js'],
+                              othersrc = ['raphael.min.js', '../../mturkutils/lib/dltk.js'],
                               sandbox = False,
                               title = 'Position Judgement',
                               reward = 0.35,

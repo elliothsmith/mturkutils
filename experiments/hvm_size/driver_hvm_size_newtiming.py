@@ -59,7 +59,7 @@ class HvMSizeExperiment(Experiment):
             imgData.extend(bmeta)
         self._trials = {'imgFiles': imgs, 'imgData': imgData}
 
-othersrc = ['three.min.js', 'posdict.js', 'Detector.js', 'jstat.min.js', '../../lib/dltk.js']
+othersrc = ['three.min.js', 'posdict.js', 'Detector.js', 'jstat.min.js', '../../mturkutils/lib/dltk.js']
 
 additionalrules = [{'old': 'LEARNINGPERIODNUMBER',
                     'new':  str(LEARNING_PERIOD)}]

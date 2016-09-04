@@ -86,7 +86,7 @@ def get_exp(category, sandbox=True, dummy_upload=True):
             trials_per_hit=trials_per_hit,  # 144 + 8x4 repeats + 16 training
             html_data=html_data,
             frame_height_pix=1200,
-            othersrc = ['objnames.js', '../../lib/dltk.js', '../../lib/dltkexpr.js', '../../lib/dltkrsvp.js'],
+            othersrc = ['objnames.js', '../../mturkutils/lib/dltk.js', '../../mturkutils/lib/dltkexpr.js', '../../mturkutils/lib/dltkrsvp.js'],
             additionalrules=additionalrules,
             log_prefix='subordinate_' + category + '_'
             )

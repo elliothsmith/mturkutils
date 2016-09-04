@@ -80,7 +80,7 @@ def get_exp(sandbox=True, debug=False, dummy_upload=True):
             html_data=html_data,
             tmpdir='tmp',
             frame_height_pix=1200,
-            othersrc=['../../lib/dltk.js', '../../lib/dltkexpr.js', '../../lib/dltkrsvp.js'],
+            othersrc=['../../mturkutils/lib/dltk.js', '../../mturkutils/lib/dltkexpr.js', '../../mturkutils/lib/dltkrsvp.js'],
             additionalrules=additionalrules
             )
 

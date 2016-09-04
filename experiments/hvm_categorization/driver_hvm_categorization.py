@@ -68,7 +68,7 @@ def get_exp(sandbox=True, dummy_upload=True):
             trials_per_hit=trials_per_hit,  # 150 + 8x4 repeats
             html_data=html_data,
             frame_height_pix=1200,
-            othersrc = ['../../lib/dltk.js'],
+            othersrc = ['../../mturkutils/lib/dltk.js'],
             additionalrules=additionalrules
 
             )

@@ -4,7 +4,7 @@ import numpy as np
 import dldata.stimulus_sets.hvm as hvm
 from mturkutils.base import Experiment
 
-othersrc = ['three.min.js', 'posdict.js', 'Detector.js', 'TrackballControls.js', 'jstat.min.js', '../../lib/dltk.js']
+othersrc = ['three.min.js', 'posdict.js', 'Detector.js', 'TrackballControls.js', 'jstat.min.js', '../../mturkutils/lib/dltk.js']
 
 LEARNING_PERIOD = 10
 REPEATS = 5

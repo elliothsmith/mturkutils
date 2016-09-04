@@ -4,16 +4,19 @@ We use Amazon Mechanical Turk (MTurk) for high-throughput web-based human psycho
 
 ## Setup
 
-1. **Training for human subjects:** Before you begin launching any task, make sure you have contacted the lab manager and have taken the appropriate [Collaborative Institutional Training Initiative](http://couhes.mit.edu/training-research-involving-human-subjects) (CITI) courses. 
+1. **Training for human subjects:** Before you begin launching any task, make sure you have contacted the lab manager and have taken the appropriate [Collaborative Institutional Training Initiative](http://couhes.mit.edu/training-research-involving-human-subjects) (CITI) courses.
 
-2. **Amazon Credentials:** You will also need credentials separately for Amazon S3 and MTurk. Someone from the lab will help you get those credentials. Once you get them go to the home folder of [mh17](http://mindhive.mit.edu/intro) (simply `ssh username@mh17.mit.edu`) and create a file named '.boto' The contents of the file should look like:
+2. **Amazon Credentials:** You will also need credentials separately for Amazon S3 and MTurk. Someone from the lab will help you get those credentials. Once you get them, go to the home folder of [mh17](http://mindhive.mit.edu/intro) (simply `ssh username@mh17.mit.edu`) and create a file named '.boto'. The contents of the file should look like:
 
+    ```
     [Credentials]
     aws_access_key_id=AKEYOUWILLGET
     aws_secret_access_key=thesecretkeyuwillget
+
     [MTurkCredentials]
-    AWS_ACCESS_KEY_ID = AKEYOUWILLGET
-    AWS_SECRET_ACCESS_KEY = thesecretkeyuwillget
+    AWS_ACCESS_KEY_ID=AKEYOUWILLGET
+    AWS_SECRET_ACCESS_KEY=thesecretkeyuwillget
+    ```
 
 3. **Access to MTurk account:** The other _username_ and _password_ you will need is for the Amazon Mechanical Turk Requester account. This is where you can check how many **HITs** (_Human Intelligence Tasks_) you have launched and how many subjects have responded so far etc. You can also directly download the results and work off it, but it is suggested that you use the existing lab tools (i.e., mturkutils) to organize the process and make it more efficient and the data easily shareable.
 
@@ -67,7 +70,7 @@ You should *always* test your sandbox HITs before putting them in production.
 
 ```python
 import cPickle
-from driver_basic import get_exp 
+from driver_basic import get_exp
 exp = get_exp(sandbox=False)[0]
 hitids = cPickle.load(open(‘PICKLEFILE.pkl’))
 exp.updateDBwithHITs(hitids)

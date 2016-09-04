@@ -87,7 +87,7 @@ def get_exp(sandbox=True, debug=False):
             trials_per_hit=ACTUAL_TRIALS_PER_HIT + 16,  # 100 + 4x4 repeats
             tmpdir='tmp',
             frame_height_pix=1200,
-            othersrc=['../../lib/dltk.js', '../../lib/dltkexpr.js', '../../lib/dltkrsvp.js'],   # noqa
+            othersrc=['../../mturkutils/lib/dltk.js', '../../mturkutils/lib/dltkexpr.js', '../../mturkutils/lib/dltkrsvp.js'],   # noqa
             set_destination=True,
             )
 

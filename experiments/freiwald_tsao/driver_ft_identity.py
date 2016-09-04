@@ -65,7 +65,7 @@ def get_exp(sandbox=True, dummy_upload=True):
     additionalrules = [{'old': 'LEARNINGPERIODNUMBER',
                         'new':  str(LEARNING_PERIOD)}]
 
-    trials_per_hit = ACTUAL_TRIALS_PER_HIT + REPEATS_PER_QE_IMG * len(repeat_inds) + LEARNING_PERIOD  
+    trials_per_hit = ACTUAL_TRIALS_PER_HIT + REPEATS_PER_QE_IMG * len(repeat_inds) + LEARNING_PERIOD
     exp = MatchToSampleFromDLDataExperiment(
             htmlsrc='ft_identity.html',
             htmldst='ft_identity_n%05d.html',
@@ -83,7 +83,7 @@ def get_exp(sandbox=True, dummy_upload=True):
             trials_per_hit=trials_per_hit,
             html_data=html_data,
             frame_height_pix=1200,
-            othersrc = ['../../lib/dltk.js', '../../lib/dltkexpr.js', '../../lib/dltkrsvp.js'],
+            othersrc = ['../../mturkutils/lib/dltk.js', '../../mturkutils/lib/dltkexpr.js', '../../mturkutils/lib/dltkrsvp.js'],
             additionalrules=additionalrules,
             log_prefix='freiwald_tsao_identification_'
             )
@@ -117,7 +117,7 @@ def get_exp(sandbox=True, dummy_upload=True):
 
     offsets = np.arange(ACTUAL_TRIALS_PER_HIT - 1, -1, -ACTUAL_TRIALS_PER_HIT / float(len(ind_repeats))
             ).round().astype('int')
-            
+
     print(len(offsets), offsets)
 
     print('a', len(exp._trials['imgFiles']))
@@ -154,7 +154,7 @@ def get_exp(sandbox=True, dummy_upload=True):
 
 
     print('d', len(exp._trials['imgFiles']))
-    
+
     print '** n_applied_hits =', n_applied_hits
     print '** len for each in _trials =', \
             {e: len(exp._trials[e]) for e in exp._trials}

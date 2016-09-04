@@ -20,7 +20,7 @@
             if (callable(targets[i][name])) {
                 if (flags === true || flags[i])
                     jobs.push(targets[i][name]);
-                else 
+                else
                     jobs.push(dltk.ERROR_DISABLED);
             }
             else
@@ -100,31 +100,31 @@
          **********************************************************************/
 
         // -- Default constants
-        var MSG_NO_MOBILE = "<span><font color=red style=background-color:white><b>" + 
+        var MSG_NO_MOBILE = "<span><font color=red style=background-color:white><b>" +
             "Mobile devices are not supported.<br />Thank you!</b></font></span>";
-        var MSG_NOT_SUPPORTED_OS = "<span><font color=red style=background-color:white><b>" + 
+        var MSG_NOT_SUPPORTED_OS = "<span><font color=red style=background-color:white><b>" +
             "Only ${SUPPORTED_OS} are supported.<br />Thank you!</b></font></span>";
-        var MSG_NOT_SUPPORTED_BROWSER = "<span><font color=red style=background-color:white><b>" + 
-            "Please only use the latest version of ${SUPPORTED_BROWSER} for this HIT.<br />" + 
+        var MSG_NOT_SUPPORTED_BROWSER = "<span><font color=red style=background-color:white><b>" +
+            "Please only use the latest version of ${SUPPORTED_BROWSER} for this HIT.<br />" +
             "Thank you!</b></font></span>";
         var MSG_SCREEN_TOO_SMALL = "<span><font color=red style=background-color:white><b>" +
-            "Screen smaller than ${MINSZ} is not supported.<br />Please try again with higher resolution. " + 
+            "Screen smaller than ${MINSZ} is not supported.<br />Please try again with higher resolution. " +
             "Thank you!</b></font></span>";
-        var MSG_PREVIEW = "<font color=red style=background-color:white><b>You are in PREVIEW mode.<br />" + 
+        var MSG_PREVIEW = "<font color=red style=background-color:white><b>You are in PREVIEW mode.<br />" +
             "Please ACCEPT this HIT to complete the task and receive payment.</b></font>";
-        var MSG_API_NOT_SUPPORTED = "Your browser seems to be outdated to run this task.  " + 
+        var MSG_API_NOT_SUPPORTED = "Your browser seems to be outdated to run this task.  " +
             "Please try with the newest ${SUPPORTED_BROWSER} please.";
         var MSG_SLOW_COMPUTER = "Your system is too slow (s=${DIAG}). " +
-            "Close other programs/tabs please.  If you continue to see this error message, " + 
+            "Close other programs/tabs please.  If you continue to see this error message, " +
             "it is likely that your system does not have enough power to run this task.";
         var MSG_JS_TRES_SLOW = "Your system is too slow to complete this task (t=${DIAG}).  " +
             "Close other programs/tabs please.";
-        var MSG_JS_TRES_HIGH_VARIANCE = "The system clock varies too much (v=${DIAG}).  " + 
+        var MSG_JS_TRES_HIGH_VARIANCE = "The system clock varies too much (v=${DIAG}).  " +
             "Close other programs/tabs please. If this doesn't fix the problem, " +
             "it is likely that your system is too slow to run this task.";
-        var MSG_JS_TRES_HIGH_VARIANCE_OTHER_BROWSERS = "The system clock varies too much (v=${DIAG}).  " + 
+        var MSG_JS_TRES_HIGH_VARIANCE_OTHER_BROWSERS = "The system clock varies too much (v=${DIAG}).  " +
             "Close other programs/tabs first please. If this doesn't fix the problem, " +
-            "you can try other web browsers.  However, if you still see this message, " + 
+            "you can try other web browsers.  However, if you still see this message, " +
             "it is likely that your system is too slow to run this task.";
         var MSG_FF_BADSTATE = "Your browser's timestamps are too inaccurate (q=${DIAG}).  " +
             "Please first make sure you're using the latest version of Firefox.  " +
@@ -155,7 +155,7 @@
         // A default list of elements that will be recentered upon screen resize (if recomputeOffset is enabled)
         var RECOMPUTE_OFFSET_RECENTER = ['elemUpperRightGroup'];
         // These will be recentered after passing benchmark  (if recomputeOffset is enabled)
-        var RECOMPUTE_OFFSET_RECENTER_AFTER_BENCHMARK = ['elemWarning', 'elemPreload']; 
+        var RECOMPUTE_OFFSET_RECENTER_AFTER_BENCHMARK = ['elemWarning', 'elemPreload'];
 
         var OPTDCT_DEFAULT = {
             /*** variables that define the experiment ***/
@@ -182,7 +182,7 @@
             trialSpecs: [],
             // modules to add on init(). each element is a dictionary and can have the following keys:
             //    - module: the module class to add (e.g., dltk.RSVPModule)
-            //    - options: dictionary, optional, the options to pass for the module 
+            //    - options: dictionary, optional, the options to pass for the module
             modulesToAdd: [],
             /*** various document elements ***/
             elemFallback: null,         // things to display when everything fails
@@ -193,7 +193,7 @@
             elemTutorial: null,         // this will be tutorial dialog box
             elemNotice: null,           // things to display when the task is ready to go, below the instructions
             elemBeginTaskGroup: null,   // this contains all stuffs that begin experiment (e.g. elemBeginTaskBtn)
-            elemBeginTaskBtn: null,     // this will be the button that actually start the experiment 
+            elemBeginTaskBtn: null,     // this will be the button that actually start the experiment
             elemFPSBench: null,         // the element contains the fps benchmark canvas
             elemFPSBenchCanvasID: undefined,  // <- default must be undefined.  DONT PREPEND "#"!!
             /*** various callback functions ***/
@@ -213,7 +213,7 @@
             supportedBrowser: ['Chrome', 'Firefox'],   // pass null to disable. also don't add browsers without performance.now()
             minVertical: 600, minHorizontal: 1000,
             /*** dialogbox settings ***/
-            systemMsgDialogPosition: ['middle', 30],   
+            systemMsgDialogPosition: ['middle', 30],
             tutorialContents: '',
             tutorialDialogHeight: 560,
             tutorialDialogWidth: 900,
@@ -306,15 +306,15 @@
             // Call a module's method
             // Examples:
             // This calls "module_handle"-th module's theMethodToCall()
-            //    _callModule(module_handle, 'theMethodToCall')  
-            // This calls "module_handle"-th module's theMethodToCall() with an arguments  
+            //    _callModule(module_handle, 'theMethodToCall')
+            // This calls "module_handle"-th module's theMethodToCall() with an arguments
             //    _callModule(module_handle, 'theMethodToCall', args...)
             // This calls the current foreground module's theMethodToCall()
             //    _callModule('theMethodToCall')
             //  Same, but passing arguments to the function
             //    _callModule('theMethodToCall', args...)
             var fn, module_handle, i, args = [];
-            
+
             if (arguments.length === 0) return null;
             if (typeof(arguments[0]) == 'string') {
                 // module_handle is omitted
@@ -509,7 +509,7 @@
             that.$elemPreload.hide();
             that.$elemNotice.hide();
             that._callCallbackFunctions('onBeginExp', {}, function() {
-                // All preps are done.  Run the first trial 
+                // All preps are done.  Run the first trial
                 if (o.automaticallyRunNextTrialOnBeginExp) that.runNextTrial();
             });
         };
@@ -537,7 +537,7 @@
             dltk.runBenchmark(that._checkSystem, {canvas_test_fps: o.elemFPSBenchCanvasID,
                 canvas_test_color: o.FPSBenchColor});   // run benchmark...
             that._timer_bench = setTimeout(function() {           // ... or fall back to failure mode in 1 min.
-                that._checkSystem({api_support: false}); 
+                that._checkSystem({api_support: false});
                 }, 60 * 1000);
         };
 
@@ -677,7 +677,7 @@
                 dltk.setDebugMessage(msg);
                 return false;
             }
-            if (o.supportedBrowser !== null && 
+            if (o.supportedBrowser !== null &&
                     (o.supportedBrowser.indexOf(that.BROWSER) < 0 || !defined(vertical) || !defined(horizontal))) {
                 msg = o.supportedBrowser.join(', ');
                 pos = msg.lastIndexOf(', ');
@@ -801,7 +801,7 @@
             var s;
 
             for (var i = 0; i < o.trialSpecs.length; i++) {
-                s = o.trialSpecs[i];    
+                s = o.trialSpecs[i];
                 if (!defined(s.ActiveModules) || s.ActiveModules === null ||
                         s.ActiveModules == 'free' ||
                         s.ActiveModules.indexOf(handle) >= 0) {
@@ -826,7 +826,7 @@
             };
             var m = new module(_$, optdctmodule);
             if (!callable(m.init) || !m.init()) return -1;
-            
+
             that.modules.push(m);
             that.modules_isenabled.push(true);
             if (that.modules.length != that.modules_isenabled.length) {

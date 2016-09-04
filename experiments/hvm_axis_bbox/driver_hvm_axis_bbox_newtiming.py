@@ -58,7 +58,7 @@ additionalrules = [{'old': 'LEARNINGPERIODNUMBER',
                     'new':  str(LEARNING_PERIOD)}]
 exp = HvMAxisBBoxExperiment(htmlsrc='hvm_axis_bbox_newtiming.html',
                               htmldst='hvm_axis_bbox_newtiming_n%04d.html',
-                              othersrc =  ['intersect.js', '../../lib/dltk.js'],
+                              othersrc =  ['intersect.js', '../../mturkutils/lib/dltk.js'],
                               sandbox=False,
                               title='Axis-aligned Bounding Box Judgement',
                               reward=0.35,

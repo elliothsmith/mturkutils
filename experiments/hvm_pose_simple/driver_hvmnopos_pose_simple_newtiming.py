@@ -4,7 +4,7 @@ import numpy as np
 import dldata.stimulus_sets.hvm as hvm
 from mturkutils.base import Experiment
 
-othersrc = ['three.min.js', 'posdict.js', 'Detector.js', 'TrackballControls.js', 'jstat.min.js', '../../lib/dltk.js']
+othersrc = ['three.min.js', 'posdict.js', 'Detector.js', 'TrackballControls.js', 'jstat.min.js', '../../mturkutils/lib/dltk.js']
 
 LEARNING_PERIOD = 10
 REPEATS = 5
@@ -24,7 +24,7 @@ class HvMPoseExperiment(Experiment):
 
         meta = dataset.meta
         query_inds = np.arange(len(meta))
-        
+
         urls = dataset.publish_images(query_inds, preproc,
                                       image_bucket_name, dummy_upload=dummy_upload)
 

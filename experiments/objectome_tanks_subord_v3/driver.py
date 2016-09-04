@@ -108,7 +108,7 @@ def get_exp(sandbox=True, selected_basic_objs=SELECTED_BASIC_OBJS,
             tmpdir='tmp',
             html_data=html_data,
             frame_height_pix=1200,
-            othersrc=['../../lib/dltk.js', '../../lib/dltkexpr.js', '../../lib/dltkrsvp.js'],   # noqa
+            othersrc=['../../mturkutils/lib/dltk.js', '../../mturkutils/lib/dltkexpr.js', '../../mturkutils/lib/dltkrsvp.js'],   # noqa
             set_destination=True,
             )
 

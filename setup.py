@@ -1,28 +1,23 @@
-"""distribute- and pip-enabled setup.py """
+"""setuptools- and pip-enabled setup.py """
 
 import logging
 import os
 import re
+import codecs
+import setuptools
 
 # ----- overrides -----
 
 # set these to anything but None to override the automatic defaults
+version = None
 packages = None
-package_name = None
+package_name = 'mturkutils'
 package_data = None
 scripts = None
 requirements_file = None
-requirements = None
-dependency_links = None
-use_numpy = True
-
-# ---------------------
-
+requirements = ['numpy', 'scipy', 'boto', 'pymongo', 'tabular', 'pandas']
 
 # ----- control flags -----
-
-# fallback to setuptools if distribute isn't found
-setup_tools_fallback = False
 
 # don't include subdir named 'tests' in package_data
 skip_tests = True
@@ -32,31 +27,10 @@ debug = True
 
 # -------------------------
 
+here = os.path.abspath(os.path.dirname(__file__))
+
 if debug:
     logging.basicConfig(level=logging.DEBUG)
-# distribute import and testing
-try:
-    import distribute_setup
-    distribute_setup.use_setuptools()
-    logging.debug("distribute_setup.py imported and used")
-except ImportError:
-    # fallback to setuptools?
-    # distribute_setup.py was not in this directory
-    if not (setup_tools_fallback):
-        import setuptools
-        if not (hasattr(setuptools, '_distribute') and \
-                setuptools._distribute):
-            raise ImportError(\
-                    "distribute was not found and fallback " \
-                    "to setuptools was not allowed")
-        else:
-            logging.debug("distribute_setup.py not found, \
-                    defaulted to system distribute")
-    else:
-        logging.debug("distribute_setup.py not found, " \
-                "defaulting to system setuptools")
-
-import setuptools
 
 
 def find_scripts():
@@ -144,25 +118,34 @@ def parse_requirements(file_name):
     return requirements
 
 
-def parse_dependency_links(file_name):
-    """
-    from:
-        http://cburgmer.posterous.com/pip-requirementstxt-and-setuppy
-    """
-    dependency_links = []
-    with open(file_name) as f:
-        for line in f:
-            if re.match(r'\s*-[ef]\s+', line):
-                dependency_links.append(re.sub(r'\s*-[ef]\s+',\
-                        '', line))
-    return dependency_links
+def read(*parts):
+    # intentionally *not* adding an encoding option to open, See:
+    #   https://github.com/pypa/virtualenv/issues/201#issuecomment-3145690
+    return codecs.open(os.path.join(here, *parts), 'r').read()
+
+
+def find_version(*file_paths):
+    version_file = read(*file_paths)
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+                              version_file, re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError("Unable to find version string.")
+
 
 # ----------- Override defaults here ----------------
+
+# Get the long description from the README file
+long_description = read('README.md')
+
 if packages is None:
     packages = setuptools.find_packages()
 
 if len(packages) == 0:
     raise Exception("No valid packages found")
+
+if version is None:
+    version = find_version(package_name, '__init__.py')
 
 if package_name is None:
     package_name = packages[0]
@@ -179,13 +162,9 @@ if requirements_file is None:
 if os.path.exists(requirements_file):
     if requirements is None:
         requirements = parse_requirements(requirements_file)
-    if dependency_links is None:
-        dependency_links = parse_dependency_links(requirements_file)
 else:
     if requirements is None:
         requirements = []
-    if dependency_links is None:
-        dependency_links = []
 
 if debug:
     logging.debug("Module name: %s" % package_name)
@@ -198,35 +177,30 @@ if debug:
     logging.debug("Requirements:")
     for req in requirements:
         logging.debug("\t%s" % req)
-    logging.debug("Dependency links:")
-    for dl in dependency_links:
-        logging.debug("\t%s" % dl)
 
 if __name__ == '__main__':
 
     sub_packages = packages
 
-    if use_numpy:
-        from numpy.distutils.misc_util import Configuration
-        config = Configuration(package_name, '', None)
+    setuptools.setup(
+        name=package_name,
+        version=version,
+        long_description=long_description,
+        url='https://github.com/dicarlolab/mturkutils',
+        author='DiCarlo Lab',
+        author_email='dlmug@mit.edu',
+        classifiers=[
+            'Development Status :: 5 - Production/Stable',
+            'Intended Audience :: Science/Research',
+            'Topic :: Scientific/Engineering',
+            'Programming Language :: Python :: 2'
+        ],
+        keywords='mturk psychophysics',
 
-        for sub_package in sub_packages:
-            print 'adding', sub_package
-            config.add_subpackage(sub_package)
+        packages=packages,
+        scripts=scripts,
 
-        from numpy.distutils.core import setup
-        setup(**config.todict())
-
-    else:
-        setuptools.setup(
-            name=package_name,
-            version='dev',
-            packages=packages,
-            scripts=scripts,
-
-            package_data=package_data,
-            include_package_data=True,
-
-            install_requires=requirements,
-            dependency_links=dependency_links
-        )
+        package_data=package_data,
+        include_package_data=True,
+        install_requires=requirements
+    )
