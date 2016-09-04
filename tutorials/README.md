@@ -24,7 +24,7 @@ We use Amazon Mechanical Turk (MTurk) for high-throughput web-based human psycho
 
 ## General workflow
 
-![General Workflow] (https://raw.githubusercontent.com/dicarlolab/dicarlolab101/master/mturk_files/general_workflow.png?token=AKMnBtRqank3HDI1px-2e8-bk3fvTEFKks5WfG7XwA%3D%3D)
+![General Workflow](general_workflow.png)
 
 Ha (hahong@mit.edu) has provided a tutorial that deals with each of the steps. Click the tutorial link below to see it. ([Tutorial](https://github.com/dicarlolab/mturkutils/blob/master/tutorials/Hands-on%20tutorial.pdf))
 
@@ -78,6 +78,12 @@ exp.updateDBwithHITs(hitids)
 
 ### Retrieve data stored in dicarlo5
 
+First, you need to establish an ssh tunnel into dicarlo5:
+
+`ssh -f -N -L 22334:localhost:22334 <username>@dicarlo5.mit.edu`
+
+Next, you can get the data like this:
+
 ```python
 import pymongo
 
@@ -90,6 +96,4 @@ for doc in coll.find():
   data = doc['ImgData’]
   ...
 ```
-In case you need to establish an ssh tunnel into dicarlo5:
 
-`ssh -f -N -L 22334:localhost:22334 <username>@dicarlo5.mit.edu`
