@@ -15,7 +15,7 @@ package_name = 'mturkutils'
 package_data = None
 scripts = None
 requirements_file = None
-requirements = ['numpy', 'scipy', 'boto', 'pymongo', 'tabular', 'pandas']
+requirements = ['numpy', 'scipy', 'boto', 'pymongo>=2.4.0', 'tabular', 'pandas']
 
 # ----- control flags -----
 

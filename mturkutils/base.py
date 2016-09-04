@@ -329,7 +329,7 @@ class Experiment(object):
                     'database collection name.')
 
         #Connect to pymongo database for MTurk results.
-        self.mongo_conn = pymongo.Connection(host=mongo_host, port=mongo_port)
+        self.mongo_conn = pymongo.MongoClient(host=mongo_host, port=mongo_port)
         self.db = self.mongo_conn[mongo_dbname]
         self.collection = self.db[collection_name]
 
@@ -1074,7 +1074,7 @@ def update_mongodb_once(coll, subj_data, meta, verbose=False, overwrite=False):
     for subj in subj_data:
         assert isinstance(subj, dict)
         try:
-            doc_id = coll.insert(subj, safe=True)
+            doc_id = coll.insert_one(subj)
         except pymongo.errors.DuplicateKeyError:
             if not overwrite:
                 warn('Entry already exists, moving to next...')
@@ -1154,7 +1154,7 @@ def convertTabArrayToDict(meta_tabarray, lookup_field=LOOKUP_FIELD):
 
 
 def updateGeoData(collect):
-    conn = pymongo.Connection(port=MONGO_PORT, host=MONGO_HOST)
+    conn = pymongo.MongoClient(port=MONGO_PORT, host=MONGO_HOST)
     db = conn.mturk
     col = db[collect]
 

@@ -7,7 +7,6 @@ experiments on Amazon Mechanical Turk.
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-# from __future__ import unicode_literals
 
 import glob, datetime, argparse, shutil
 import cPickle as pickle
@@ -101,7 +100,7 @@ class Experiment(base.Experiment):
             exp_plan = exp_plan[:self.trials_per_hit]
         elif self.short:
             exp_plan = exp_plan[:10]
-            
+
         return exp_plan
 
     def save_exp_plan(self, exp_plan):
@@ -164,7 +163,7 @@ class Experiment(base.Experiment):
             subj_data = self.getHITdata(hitid, full=False)
             if len(subj_data) == 0:  # no data yet
                 idx += self.trials_per_hit
-            elif len(subj_data) == 1:                    
+            elif len(subj_data) == 1:
                 for subj in subj_data:
                     assert isinstance(subj, dict)
                     data = zip(subj['ImgOrder'], subj['Response'], subj['RT'])
@@ -200,7 +199,7 @@ class Experiment(base.Experiment):
                 assert isinstance(subj, dict)
 
                 try:
-                    doc_id = coll.insert(subj, safe=True)
+                    doc_id = coll.insert_one(subj)
                 except pymongo.errors.DuplicateKeyError:
                     if not overwrite:
                         warn('Entry already exists, moving to next...')
@@ -266,7 +265,7 @@ def run_exp(exp=None, dataset=None):
         if args.func == 'create':
             exp.create_exp_plan()
         elif args.func == 'prep':
-            exp.createTrials()            
+            exp.createTrials()
             exp.prepHTMLs()
         elif args.func == 'upload':
             exp.createTrials()
