@@ -14,7 +14,7 @@ ACTUAL_TRIALS_PER_HIT = 140 # Number of experimental trials, without repeat imag
 
 def get_url_labeled_resp_img(cat):
     # Get canonical response image for this 'category' cat.
-    base_url = 'https://canonical_images.s3.amazonaws.com/'
+    base_url = 'https://s3.amazonaws.com/mutatorsr/resources/response_images/'
     return base_url+ cat+ '.png'
 
 
@@ -22,8 +22,8 @@ def get_exp(sandbox=True, debug=True, dummy_upload=True):
     dataset = hvm.HvMWithDiscfade() # Pull urls and meta from this dldata dataset.
     meta = dataset.meta # Load meta.
     response_images = []
-    categories = np.unique(meta['category']) # The categories for this experiment are the ones in meta.
-    cat_combs= [e for e in itertools.combinations(categories, 4)] # Get every possible pairing of categories; these are the confusions to be measured.
+    categories = ['Animals', 'Boats', 'Cars', 'Chairs'] #np.unique(meta['category']) # The categories for this experiment are the ones in meta.
+    cat_combs= [('Animals', 'Boats', 'Cars', 'Chairs')] #[e for e in itertools.combinations(categories, 4)] # Get every possible pairing of categories; these are the confusions to be measured.
     response_images.extend([{
     'urls': [get_url_labeled_resp_img(c1), get_url_labeled_resp_img(c2), get_url_labeled_resp_img(c3), get_url_labeled_resp_img(c4)],
     'meta': [{'category': category} for category in [c1, c2, c3, c4]],
@@ -44,13 +44,13 @@ def get_exp(sandbox=True, debug=True, dummy_upload=True):
         'meta_field': 'category',
         'meta': meta,
         'urls': urls,
-        'shuffle_test': True,
+        'shuffle_test': False, # Shuffle position of test images or no?
         'meta_query' : lambda x: x['var'] == 'V6',
         'label_func': label_func
     }
     cat_dict = {'Animals': 'Animal', 'Boats': 'Boat', 'Cars': 'Car',
-               'Chairs': 'Chair', 'Faces': 'Face', 'Fruits': 'Fruit',
-               'Planes': 'Plane', 'Tables': 'Table'}
+               'Chairs': 'Chair'}#, 'Faces': 'Face', 'Fruits': 'Fruit',
+               #'Planes': 'Plane', 'Tables': 'Table'}
 
     additionalrules = [{'old': 'LEARNINGPERIODNUMBER',
                         'new':  str(10)},
@@ -76,7 +76,7 @@ def get_exp(sandbox=True, debug=True, dummy_upload=True):
             collection_name= None,#'hvm_basic_2ways', # name of MongoDB db to update / create on dicarlo5. Safe to change?
             max_assignments=1, # how many unique workers can complete a particular hit.
             bucket_name='hvm_2ways', # Refers to amazon; either mturk or s3 service (I'm not sure.) on which to store htmls. not safe to change before uploading source to bucket
-            trials_per_hit= ACTUAL_TRIALS_PER_HIT + 24,  # ACTUAL_TRIALS_PER_HIT + (6xREPEATS_PER_QE_IMG) repeats
+            trials_per_hit= ACTUAL_TRIALS_PER_HIT, #+ 24,  # ACTUAL_TRIALS_PER_HIT + (6xREPEATS_PER_QE_IMG) repeats
             html_data=html_data,
             tmpdir='tmp',
             frame_height_pix=1200,
@@ -94,7 +94,7 @@ def get_exp(sandbox=True, debug=True, dummy_upload=True):
 
     # -- in each HIT, the followings will be repeated 4 times to
     # estimate "quality" of data
-    ind_repeats = [0, 4, 47, 9, 17, 18] * REPEATS_PER_QE_IMG
+    ind_repeats = [] #[0, 4, 47, 9, 17, 18] * REPEATS_PER_QE_IMG
     rng = np.random.RandomState(0)
     rng.shuffle(ind_repeats)
     trials_qe = {e: [copy.deepcopy(exp._trials[e][r]) for r in ind_repeats]
