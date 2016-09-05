@@ -32,7 +32,7 @@ div#systemmsg { position:relative; background-color: white; padding: 10px; }
 // -- Experimental variables
 var ExperimentData = null;
 var LEARNING_PERIOD = LEARNINGPERIODNUMBER;
-var exp_type = 'two_way';
+var exp_type = 'four_way';
 var imgFiles = ExperimentData.imgFiles;
 var imgData = ExperimentData.imgData;
 var trialSpecs = [];
@@ -43,7 +43,7 @@ var exp = null;             // the main Experiment object
 
 var stimduration = 100;
 var ISI = 500;
-var maxHeightInThisExp = 450;
+var maxHeightInThisExp = 650;
 var zoom;
 var aID;
 var extInfo = {language: navigator.language, userAgent: navigator.userAgent};
@@ -98,7 +98,7 @@ function postResponse(argdct){
     console.log('reward', reward)
     var format_error = (100 * error).toPrecision(3);
 
-    if (trialNumber < LEARNING_PERIOD){
+    if (trialNumber < LEARNING_PERIOD){ // Executes if in learning period.
         var correct_answer = imgData[trialNumber]["Sample"][meta_field];
         console.log(correct_answer)
         $('#trialCounter').html('Correct answer: ' + catdict[correct_answer] + '.<br/><b><span style="color:red; font-size:large"><u>' + (LEARNING_PERIOD - trialNumber - 1) + '</u> learning trial(s) left</span> after this.</b>');
@@ -113,9 +113,10 @@ function postResponse(argdct){
             }
         }
 
-        $('#img' + (correct_test_index + 4)).css("border-width",  "5px");
-        $('#img' + (correct_test_index + 4)).css("border-color",  "blue");
-        $('#img' + (correct_test_index + 4)).css("border-style",  "solid");
+        // This code highlights the correct answer during the learning period.
+        $('#img' + (correct_test_index + 3)).css("border-width",  "5px"); 
+        $('#img' + (correct_test_index + 3)).css("border-color",  "blue");
+        $('#img' + (correct_test_index + 3)).css("border-style",  "solid");
 
 
     } else {
@@ -252,8 +253,8 @@ function initSetup() {
         elemSample: '#sample_container',      // which fully contains sampling related stuffs (previously .test)
         elemTest: '#test_container',   // which fully contains testing related stuffs (previously #group_container)
         elemSampleCanvasID: 'main_sample',       // don't prepend #   (previously main_test)
-        elemTestCanvasIDs: ['img4', 'img5'],     // don't prepend #
-        elemTestClickables: ['#img4', '#img5'],  // elements that will be made clickable to receive answers
+        elemTestCanvasIDs: ['img3', 'img4', 'img5', 'img6'],     // don't prepend #
+        elemTestClickables: ['#img3', '#img4', '#img5', '#img6'],  // elements that will be made clickable to receive answers
         elemTrialCounter: '#trialCounter',
         onPostDrawResponse: postResponse,
         onResponseReady:       // called whan all test images are up
@@ -347,8 +348,8 @@ $(document).ready(main);
   <tr>
     <td align="center">
     </td>
-    <td align="center">
-   </td>
+    <td align="center"><canvas id="img3" class='clickon' style="position:relative; top:0px; border:1px solid #000000;" height=200 width=200"></canvas>
+    </td>
     <td align="center">
     </td>
   </tr>
@@ -366,7 +367,7 @@ $(document).ready(main);
   <tr height=100>
     <td id="label1" align="center" width=200>
     </td>
-    <td align="center">
+    <td align="center"><canvas id="img6" class='clickon' style="position:relative; top:0px; border:1px solid #000000;" height=200 width=200"></canvas>
     </td>
     <td id="label2" align="center" width=200>
     </td>
