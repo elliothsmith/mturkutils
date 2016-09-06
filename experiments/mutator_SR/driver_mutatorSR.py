@@ -44,7 +44,7 @@ def get_exp(sandbox=True, debug=True, dummy_upload=True):
         'meta_field': 'category',
         'meta': meta,
         'urls': urls,
-        'shuffle_test': False, # Shuffle position of test images or no?
+        'shuffle_test': True, # Shuffle position of test images or no?
         'meta_query' : lambda x: x['var'] == 'V6',
         'label_func': label_func
     }
@@ -63,7 +63,7 @@ def get_exp(sandbox=True, debug=True, dummy_upload=True):
                        {'old': 'METAFIELD',
                         'new': "'category'"}]
 
-    exp = MatchToSampleFromDLDataExperiment(
+    exp = MatchToSampleFromDLDataExperiment( # Doesn't need dldata stimulus set; can pass in images / meta explicitly.
             htmlsrc='web/general_mutatorSR.html',
             htmldst='hvm_mutatorSR_n%05d.html',
             sandbox=sandbox,
