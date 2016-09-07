@@ -9,48 +9,71 @@ import dldata.stimulus_sets.hvm as hvm
 from mturkutils.base import MatchToSampleFromDLDataExperiment
 from os import path
 import json
-REPEATS_PER_QE_IMG = 4 # Number of times to repeat select images, for "Quality Estimation" purposes
-ACTUAL_TRIALS_PER_HIT = 140 # Number of experimental trials, without repeat images. And without tutorial trials.
+
+SELECTED_BASIC_OBJS = ['octopus', 'dippindots', 'blenderball', 'dirtyball']
+REPEATS_PER_QE_IMG = 5 # Number of times to repeat select images, for "Quality Estimation" purposes
+ACTUAL_TRIALS_PER_HIT = 200 # Number of experimental trials, without repeat images. And without tutorial trials.
 
 def get_url_labeled_resp_img(cat):
     # Get canonical response image for this 'category' cat.
-    base_url = 'https://s3.amazonaws.com/mutatorsr/resources/response_images/'
-    return base_url+ cat+ '.png'
 
+    # Define directions (hardcode for now). TODO: randomize objects and directions
+    if(cat == 'octopus'):
+        direction = 'up'
+    elif(cat == 'dippindots'):
+        direction = 'left'
+    elif (cat == 'blenderball'):
+        direction = 'right'
+    elif (cat == 'dirtyball'):
+        direction = 'down'
+
+    base_url = 'https://s3.amazonaws.com/mutatorsr/resources/response_images/'
+    return base_url + direction + '.png'
+
+def get_meta(selected_basic_objs=SELECTED_BASIC_OBJS):
+    # Return tabarray with keys 'obj' , 'bg_id', and 'url'
+    assert len(np.unique(selected_basic_objs)) == 4
+    meta = pk.load(open('meta_pilot4.pkl'))
+    return meta
 
 def get_exp(sandbox=True, debug=True, dummy_upload=True):
-    dataset = hvm.HvMWithDiscfade() # Pull urls and meta from this dldata dataset.
-    meta = dataset.meta # Load meta.
-    response_images = []
-    categories = ['Animals', 'Boats', 'Cars', 'Chairs'] #np.unique(meta['category']) # The categories for this experiment are the ones in meta.
-    cat_combs= [('Animals', 'Boats', 'Cars', 'Chairs')] #[e for e in itertools.combinations(categories, 4)] # Get every possible pairing of categories; these are the confusions to be measured.
-    response_images.extend([{
-    'urls': [get_url_labeled_resp_img(c1), get_url_labeled_resp_img(c2), get_url_labeled_resp_img(c3), get_url_labeled_resp_img(c4)],
-    'meta': [{'category': category} for category in [c1, c2, c3, c4]],
-    'labels': [c1, c2, c3, c4]
-    } for c1, c2, c3, c4 in cat_combs]) # List of dicts for response images information; one entry (a dict)_ for each confusion to be measured.
-    combs = cat_combs
 
-    urls = dataset.publish_images(range(len(dataset.meta)), None, 'hvm_timing', # dldata method that uploads to s3 the images, in their own bucket.
-                                      dummy_upload=dummy_upload)
+    #dataset = hvm.HvMWithDiscfade() # Pull urls and meta from this dldata dataset.
+    #meta = dataset.meta # Load meta.
+    meta = get_meta()
+
+
+    response_images = []
+    obj_combs= [('octopus', 'dippindots', 'blenderball', 'dirtyball')] #[e for e in itertools.combinations(categories, 4)] # Get every possible pairing of categories; these are the confusions to be measured.
+    response_images.extend([{
+    'urls': [get_url_labeled_resp_img(o1), get_url_labeled_resp_img(o2), get_url_labeled_resp_img(o3), get_url_labeled_resp_img(o4)],
+    'meta': [{'obj': obj} for obj in [o1, o2, o3, o4]],
+    'labels': [o1, o2, o3, o4]
+    } for o1, o2, o3, o4 in obj_combs]) # List of dicts for response images information; one entry (a dict)_ for each confusion to be measured.
+    combs = obj_combs
+
+    #urls = dataset.publish_images(range(len(dataset.meta)), None, 'hvm_timing', # dldata method that uploads to s3 the images, in their own bucket.
+    #                                  dummy_upload=dummy_upload)
+
+    urls = meta['url']
 
     with open(path.join(path.dirname(__file__), 'tutorial_html_basic'), 'r') as tutorial_html_file:
         tutorial_html = tutorial_html_file.read()
-    label_func = lambda x: hvm.OBJECT_NAMES[x['obj']]
+    label_func = lambda x: meta[x]['obj']
     html_data = {
         'combs': combs,
         'response_images': response_images,
-        'num_trials': 125 * 2, # "Number of times to measure each confusion." I think this means total times over the population
-        'meta_field': 'category',
+        'num_trials': 100 * 5, # "Number of times to measure each confusion." I think this means total times over the population
+        'meta_field': 'obj',
         'meta': meta,
         'urls': urls,
-        'shuffle_test': True, # Shuffle position of test images or no?
-        'meta_query' : lambda x: x['var'] == 'V6',
+        'shuffle_test': False, # Shuffle position of response images or no?
+        'meta_query' : None,
         'label_func': label_func
     }
-    cat_dict = {'Animals': 'Animal', 'Boats': 'Boat', 'Cars': 'Car',
-               'Chairs': 'Chair'}#, 'Faces': 'Face', 'Fruits': 'Fruit',
-               #'Planes': 'Plane', 'Tables': 'Table'}
+  #  cat_dict = {'Animals': 'Animal', 'Boats': 'Boat', 'Cars': 'Car',
+  #             'Chairs': 'Chair'}#, 'Faces': 'Face', 'Fruits': 'Fruit',
+  #             #'Planes': 'Plane', 'Tables': 'Table'}
 
     additionalrules = [{'old': 'LEARNINGPERIODNUMBER',
                         'new':  str(10)},
@@ -58,14 +81,14 @@ def get_exp(sandbox=True, debug=True, dummy_upload=True):
                         'new': 'Object Recognition'},
                        {'old': 'TUTORIAL_HTML',
                         'new': tutorial_html},
-                       {'old': 'CATDICT',
-                        'new': json.dumps(cat_dict)},
+ #                      {'old': 'CATDICT',
+ #                       'new': json.dumps(cat_dict)},
                        {'old': 'METAFIELD',
-                        'new': "'category'"}]
+                        'new': "'obj'"}]
 
     exp = MatchToSampleFromDLDataExperiment( # Doesn't need dldata stimulus set; can pass in images / meta explicitly.
             htmlsrc='web/general_mutatorSR.html',
-            htmldst='hvm_mutatorSR_n%05d.html',
+            htmldst='mutatorSR_n%05d.html',
             sandbox=sandbox,
             title='Visual object learning --- match strange objects to hieroglyphs',
             reward=0.25,
@@ -92,6 +115,8 @@ def get_exp(sandbox=True, debug=True, dummy_upload=True):
     if debug:
         return exp, html_data
 
+
+#### TODO: Not touched:
     # -- in each HIT, the followings will be repeated 4 times to
     # estimate "quality" of data
     ind_repeats = [] #[0, 4, 47, 9, 17, 18] * REPEATS_PER_QE_IMG

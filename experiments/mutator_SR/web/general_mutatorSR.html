@@ -66,7 +66,8 @@ var error = 0;
 var distances = [];
 var meta_field = METAFIELD;
 
-var catdict = CATDICT;
+// Used to display correct answer during learning phase; CATDICT is some json thing dumped in the python driver. 
+// var catdict = CATDICT; 
 
 
 function reward_scale(error){
@@ -112,15 +113,16 @@ function postResponse(argdct){
     reward = reward_positivereinf(error, trialNumber); 
     console.log('reward', reward)
 
-    //var format_error = (100 * error).toPrecision(3);
+    var format_error = (100 * error).toPrecision(3);
     var format_reward = (reward).toPrecision(2); 
     var format_corrects = Math.round(trialNumber*(1-error));
     console.log('numcorrects', format_corrects)
 
-    if (trialNumber < LEARNING_PERIOD){ // Executes if in learning period.
+    // If in learning period, highlight the correct answer and the number of trials left.
+    if (trialNumber < LEARNING_PERIOD){ 
         var correct_answer = imgData[trialNumber]["Sample"][meta_field];
         console.log(correct_answer)
-        $('#trialCounter').html('Correct answer: ' + catdict[correct_answer] + '.<br/><b><span style="color:red; font-size:large"><u>' + (LEARNING_PERIOD - trialNumber - 1) + '</u> learning trial(s) left</span> after this.</b>');
+        $('#trialCounter').html((LEARNING_PERIOD - trialNumber - 1) + '</u> learning trial(s) left</span> after this.</b>');
 
         var correct_test_index = 0;
         var found_it = false;
@@ -138,10 +140,11 @@ function postResponse(argdct){
         $('#img' + (correct_test_index + 3)).css("border-style",  "solid");
 
 
+    // Normal trials: 
     } else {
         // Display experiment info in middle cell of test table.
         $('#trialCounter').html('Completion: '+(100*trialNumber/totalTrials).toPrecision(2)+'%' +
-                     '<br/> No. correct: '+ format_corrects +
+                     '<br/> Successes: '+ format_corrects +
                      '<br/> Expected bonus: $'+ format_reward
                      );
     }
