@@ -8,11 +8,11 @@
 <ul>
 <li>You will see a series of images, each one presented for a very brief time. Each image will contain one out of four possible 3D objects. The objects were designed to be novel to humans, so they might look strange to you.
 <p>
-<li>After you see an image, <b>you must use your arrow keys (&#8592;, &#8593;, &#8594;, &#8595;) to select one of four options.</b> Through trial-and-error, you will learn which object is matched with what option. 
+<li>After you see an image, <b>you must use your arrow keys (&#8592;, &#8593;, &#8594;, &#8595;) to select one of four options.</b> Through <b>trial-and-error</b>, you will learn which object is matched with what option. 
 <p>
 <li>Once you select an option, you will be told whether your choice was correct or incorrect. You will then move on to the next image immediately, so be ready.
 <p>
-<li>It will take time to learn to do this well. Even if you're not 100% sure of which option to select, make your best guess. <b>You will receive a bonus for correct answers<b>, so try your best! </li>
+<li>It will take time to learn to do this well. <b>You will receive a bonus for correct answers<b>, so try your best! </li>
 <p>
 <li><font color=red> When you have worked though all the images, this HIT <b>will submit itself automatically</b>. </font></li>
 </ul>
@@ -23,7 +23,9 @@
 <p>
 <li>Please be sure to maximize your browser window before beginning this experiment.</li>
 <p>
-<li><b>In total, you will see 174 images. We expect this experiment to take about 5-10 minutes.</b> Note that the HIT will expire if you spend more than 25 minutes, so plan your time accordingly.</li>
+<li>In total, you will see 200 images. </b>We expect this experiment to take about 10 minutes.</b> Note that the HIT will expire if you spend more than 25 minutes, so plan your time accordingly.</li>
+<p>
+<li>You will have 10 learning trials at the beginning to help you get a feel for the task.</li>
 <p>
 <li>When you are ready to begin, click the "Begin" button. <b>Be prepared to see the first image -- it happens very fast!</b></li>
 <p>

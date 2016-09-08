@@ -87,8 +87,8 @@ function reward_scale(error){
 
 function reward_positivereinf(error, trialNumber){
     // Increment bonus based on performance, (learning rate?), trial number (reward more early on, then taper off)
-    var target_bonus = 0.50; // On average a worker should get this
-    var empirical_population_performance = 0.6; // Estimate of population performance
+    var target_bonus = 0.10; // On average a worker should get this bonus.
+    var empirical_population_performance = 0.4; // Estimate of population performance
 
     var _bonus_per_correct = target_bonus/ (totalTrials * empirical_population_performance); 
     var _bonus_amount = (1-error) * (trialNumber) * _bonus_per_correct;
@@ -135,9 +135,11 @@ function postResponse(argdct){
         }
 
         // This code highlights the correct answer during the learning period.
+        /*
         $('#img' + (correct_test_index + 3)).css("border-width",  "5px"); 
         $('#img' + (correct_test_index + 3)).css("border-color",  "blue");
         $('#img' + (correct_test_index + 3)).css("border-style",  "solid");
+        */
 
 
     // Normal trials: 
@@ -189,7 +191,7 @@ function clicked(argdct) {
 
 
     // Add delay here. 
-    setTimeout(endTrial, 1000)
+    setTimeout(endTrial, 600)
     //endTrial();
 }
 
@@ -271,7 +273,7 @@ function initSetup() {
 
     for (var i = 0; i < imgFiles.length; i++) {
         if (i < LEARNING_PERIOD){
-            _stimduration = 1000;
+            _stimduration = 500;
             active_modules = [0];
         } else {
             _stimduration = stimduration;
