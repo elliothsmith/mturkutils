@@ -6,13 +6,13 @@
 <center><p onclick="$('#tutorial').html($('#tutorial2').html())"><font color=blue><u>Click here to continue reading</u></font></p></center></div>
 <div id="tutorial2" style="position:absolute; z-index:-1; display: none;">
 <ul>
-<li>You will see a series of images, each one presented for a very brief time. Each image will contain one out of four possible 3D objects. The objects were designed to be novel to humans, so they might look strange to you.
+<li>You will see a series of images, each one presented for a very brief time. Each image will contain one out of four possible 3D objects.
 <p>
 <li>After you see an image, <b>you must use your arrow keys (&#8592;, &#8593;, &#8594;, &#8595;) to select one of four options.</b> Through <b>trial-and-error</b>, you will learn which object is matched with what option. 
 <p>
 <li>Once you select an option, you will be told whether your choice was correct or incorrect. You will then move on to the next image immediately, so be ready.
 <p>
-<li>It will take time to learn to do this well. <b>You will receive a bonus for correct answers<b>, so try your best! </li>
+<li>It will take some time to learn to do this well. <b>You will receive a bonus for correct answers<b>, so try your best! </li>
 <p>
 <li><font color=red> When you have worked though all the images, this HIT <b>will submit itself automatically</b>. </font></li>
 </ul>

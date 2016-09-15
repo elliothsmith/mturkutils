@@ -5,18 +5,37 @@ import tabular as tb
 import itertools
 import copy
 import sys
-from mturkutils.base import MatchToSampleFromDLDataExperiment
+import dldata.stimulus_sets.hvm as hvm #Don't remove, or else for spooky reasons "import pymongo" doesn't work
+from mturkutils.base import StimulusResponseExperiment
 from os import path
 import json
+import random
 
-SELECTED_BASIC_OBJS = ['octopus', 'dippindots', 'blenderball', 'dirtyball']
-REPEATS_PER_QE_IMG = 0 # Number of times to repeat selected images, specified below, for "Quality Estimation" (i1 internal consistency) purposes
-ACTUAL_TRIALS_PER_HIT = 200 # Number of experimental trials, without repeat images. And without tutorial trials.
+#SELECTED_BASIC_OBJS = ['octopus', 'dippindots', 'blenderball', 'dirtyball']
+#REPEATS_PER_QE_IMG = 0 # Number of times to repeat selected images, specified below, for "Quality Estimation" (i1 internal consistency) purposes
 
-tutorial_trials_per_hit = 10 # Number of learning trials
-num_HITs = 3 # number of HTML files to be generated
+TRIALS_PER_HIT = 200 # Number of experimental trials, without tutorial trials.
+tutorial_trials_per_hit = 10  # Number of learning trials
+num_HITs_per_confusion = 2
+UNIQUE_WORKERS_PER_HIT = 1
 
-def get_url_labeled_resp_img(cat):
+
+# Todo: add a canvas for these. The solution right now is hacky - the response_image_indices for these stay the same (1, 2, 3, 4) but the labels are shuffled for every HIT.
+def get_url_labeled_resp_img(obj_num):
+    if(obj_num == 1):
+        direction = 'up'
+    elif(obj_num == 2):
+        direction = 'left'
+    elif (obj_num == 3):
+        direction = 'right'
+    elif (obj_num == 4):
+        direction = 'down'
+
+    base_url = 'https://s3.amazonaws.com/mutatorsr/resources/response_images/'
+    return base_url + direction + '.png'
+
+
+def get_url_labeled_resp_img_hardcoded(cat):
     # Get response image for this 'category' cat.
     # Define directions (hardcode for now).
     # TODO: randomize objects and directions, over HITs. 1 HIT/worker
@@ -32,101 +51,148 @@ def get_url_labeled_resp_img(cat):
     base_url = 'https://s3.amazonaws.com/mutatorsr/resources/response_images/'
     return base_url + direction + '.png'
 
-def get_meta(selected_basic_objs=SELECTED_BASIC_OBJS):
+def get_meta():
     # Return tabarray with keys 'obj' , 'bg_id', and 'url'
-    assert len(np.unique(selected_basic_objs)) == 4
-    meta = pk.load(open('meta_pilot4.pkl'))
+    #assert len(np.unique(selected_basic_objs)) == 4
+    meta = pk.load(open('meta_pilot11.pkl'))
     return meta
 
-def get_exp(sandbox=True, debug=True, dummy_upload=True):
 
+def make_learningperiod_html_data():
+    #Get information to make tutorial sequence to be presented at beginning of each HIT:
+    tut_combs = [('Beetle', 'ELEPHANT_M', 'z3', 'CGTG_L')] #todo: get rid of the wonky list/tuple indexing
+    meta_query = lambda x: x['var'] == 'V0'
+    obj_sequencing = [0, 0, 0, 1, 1, 3, 2, 3, 2, 0] # Presentation order of objects
+
+    assert len(obj_sequencing) == tutorial_trials_per_hit
+    assert len(set(obj_sequencing)) == len(tut_combs[0])
+
+    hvm_dataset = hvm.HvMWithDiscfade()
+    tut_meta = hvm_dataset.meta
+    tut_urls = hvm_dataset.publish_images(range(len(hvm_dataset.meta)), None, 'hvm_timing',
+                                  dummy_upload=True)
+
+    # Based on tut_combs, get meta indices of images to be presented
+    sample_indices = []
+    obj_idx_dict = {}
+    for obj in tut_combs[0]:
+        obj_indices = set([i for i in range(len(tut_meta)) if tut_meta[i]['obj'] == obj])
+        query_indices = set([i for i in range(len(tut_meta)) if meta_query(tut_meta[i])])
+        obj_idx_dict[obj] = list(obj_indices & query_indices)
+
+    for obj_idx in obj_sequencing:
+        obj= tut_combs[0][obj_idx]
+        sample_indices.append(obj_idx_dict[obj].pop())
+
+    # Create html data:
+    sample_urls = []
+    sample_meta = []
+    for sample_idx in sample_indices:
+        sample_urls.append(tut_urls[sample_idx])
+        sample_meta.append({name: value for name, value in
+                             zip(tut_meta[sample_idx].dtype.names, tut_meta[sample_idx].tolist())})
+
+    response_info = [{
+                        'urls': [get_url_labeled_resp_img(1), get_url_labeled_resp_img(2), get_url_labeled_resp_img(3), get_url_labeled_resp_img(4)],
+                        'meta': [{'obj': obj} for obj in [o1, o2, o3, o4]],
+                        'labels': [o1, o2, o3, o4]
+                         }
+                        for o1, o2, o3, o4 in tut_combs]
+
+    test_urls = response_info[0]['urls']
+    test_meta_entries = response_info[0]['meta']
+    response_img_labels = response_info[0]['labels']
+
+
+    assert len(sample_urls) == len(sample_meta) == tutorial_trials_per_hit
+    assert len(test_urls) == len(test_meta_entries) == len(response_img_labels) == len(tut_combs[0])
+
+    learningperiod_html_data = {
+        'sample_urls': sample_urls, # List of strings, in order of desired image presentation
+        'sample_meta': sample_meta, # List of dicts, one for each image (tabarray dict-ified)
+        'tutorial_trials_per_hit': tutorial_trials_per_hit, # integer, set at top of this driver.
+        'test_urls': test_urls, # List of strings, urls, one for each option.
+        'test_meta_entries': test_meta_entries, # List of dicts, each tabarray dict-ified
+        'response_img_labels': response_img_labels, # List of strings ['objname0', 'objname1'...]
+    }
+
+    return learningperiod_html_data
+
+
+def get_exp(sandbox=True, debug=True, dummy_upload=True):
     meta = get_meta()
     urls = meta['url']
 
-    obj_combs= [('octopus', 'dippindots', 'blenderball', 'dirtyball')]
-    combs = obj_combs
+    objs = np.unique(meta['obj'])
+    objs = objs[:7]
+    print '\nObjects to be tested:', objs, '\n'
+
+    combs = [e for e in itertools.combinations(objs, 4)] # this establishes the direction mappings according to each entry's order. first = up, second = left, etc...
 
     response_images = []
     response_images.extend([{
-                            'urls': [get_url_labeled_resp_img(o1), get_url_labeled_resp_img(o2), get_url_labeled_resp_img(o3), get_url_labeled_resp_img(o4)],
+                            'urls': [get_url_labeled_resp_img(1), get_url_labeled_resp_img(2), get_url_labeled_resp_img(3), get_url_labeled_resp_img(4)],
                             'meta': [{'obj': obj} for obj in [o1, o2, o3, o4]],
                             'labels': [o1, o2, o3, o4]
                              }
-                            for o1, o2, o3, o4 in obj_combs])
+                            for o1, o2, o3, o4 in combs])
 
-    with open(path.join(path.dirname(__file__), 'tutorial_html_basic'), 'r') as tutorial_html_file:
+    with open(path.join(path.dirname(__file__), 'tutorial_html_mutatorSR'), 'r') as tutorial_html_file:
         tutorial_html = tutorial_html_file.read()
-    label_func = lambda x: meta[x]['obj']
+
     html_data = {
         'combs': combs,
         'response_images': response_images,
-        'num_trials': num_HITs*ACTUAL_TRIALS_PER_HIT, #TODO uncomment for actual production: num_HITs*ACTUAL_TRIALS_PER_HIT, # Number of trials per element in obj_comb, summed over HITS.
+        'num_trials': num_HITs_per_confusion * TRIALS_PER_HIT, # PER CONFUSION (i.e., each element in combs) to be measured.
         'meta_field': 'obj',
         'meta': meta,
         'urls': urls,
-        'shuffle_test': False, # Shuffle position of response images or no?
-        'meta_query' : None, # Take images corresponding to all entries meta, rather than meta_query(meta) entries of meta.
-        'label_func': label_func
+        'shuffle_response_map': True, # Shuffle position of response images across HITs or no?
+        'meta_query' : lambda x: x['var'] == 'V0', # Take images corresponding to all entries meta, rather than meta_query(meta) entries of meta.
+        'label_func': lambda x: meta[x]['obj']
     }
-  #  cat_dict = {'Animals': 'Animal', 'Boats': 'Boat', 'Cars': 'Car',
-  #             'Chairs': 'Chair'}#, 'Faces': 'Face', 'Fruits': 'Fruit',
-  #             #'Planes': 'Plane', 'Tables': 'Table'}
+
+    learningperiod_html_data  = make_learningperiod_html_data()
 
     additionalrules = [{'old': 'LEARNINGPERIODNUMBER',
-                        'new':  str(10)},
+                        'new':  str(tutorial_trials_per_hit)},
                        {'old': 'OBJTYPE',
                         'new': 'Object Recognition'},
                        {'old': 'TUTORIAL_HTML',
                         'new': tutorial_html},
- #                      {'old': 'CATDICT',
- #                       'new': json.dumps(cat_dict)},
                        {'old': 'METAFIELD',
                         'new': "'obj'"}]
 
-    exp = MatchToSampleFromDLDataExperiment( # Doesn't need dldata stimulus set; can pass in images / meta explicitly.
+    exp = StimulusResponseExperiment( # Doesn't need dldata stimulus set; can pass in images / meta explicitly.
             htmlsrc='web/general_mutatorSR.html',
             htmldst='mutatorSR_n%05d.html',
             sandbox=sandbox,
-            title='Visual object learning --- learn to categorize strange objects.',
+            title='Visual object learning -- learn to categorize strange objects.',
             reward=0.25,
             duration=1600,
             keywords=['neuroscience', 'psychology', 'experiment', 'object recognition'],  # noqa
             description="*Complete a visual object recognition task where you learn to associate novel objects with arrow keys. We expect this HIT to take about 10 minutes, though you must finish in under 25 minutes. You may complete one HIT in this group. By completing this HIT, you understand that you are participating in an experiment for the Massachusetts Institute of Technology (MIT) Department of Brain and Cognitive Sciences. You may quit at any time, and you will remain anonymous. Contact the requester with questions or concerns about this experiment.",  # noqa
-            comment='mutatorSR',
-            collection_name= None,# 'hvm_basic_2ways', # name of MongoDB db to update / create on dicarlo5. Safe to change?
-            max_assignments=1, # How many unique workers can complete a particular hit.
+            comment='mutatorsr',
+            collection_name = 'mutatorsr', #'hvm_basic_2ways',# 'hvm_basic_2ways', # name of MongoDB db to update / create on dicarlo5. Safe to change?
+            max_assignments=UNIQUE_WORKERS_PER_HIT, # How many unique workers can complete a particular hit.
             bucket_name='mutatorsr', # Refers to amazon; either mturk or s3 service (I'm not sure.) on which to store htmls. not safe to change before uploading source to bucket
-            trials_per_hit= ACTUAL_TRIALS_PER_HIT,  # ACTUAL_TRIALS_PER_HIT + (6xREPEATS_PER_QE_IMG) repeats
+            trials_per_hit= TRIALS_PER_HIT, # sets the periodicity with which to chop up the giant exp._trials into separate .htmls. actual trials; if there is a tutorial that is handled automatically.
             html_data=html_data,
             tmpdir='tmp',
             frame_height_pix=1200,
             othersrc=['../../lib/dltk.js', '../../lib/dltkexpr.js', '../../lib/dltkrsvp.js'],
-            additionalrules=additionalrules
+            additionalrules=additionalrules,
+            learningperiod_html_data = learningperiod_html_data, # Information used to insert the initial tutorial at the beginning of each HIT.
             )
 
     # -- create actual trials
-    exp.createTrials(sampling='with-replacement', verbose=1)
+    exp.createTrials(sampling='with-replacement-balanced', verbose=1)
 
 
-    # # TODO Tutorial: Manually prepend tutorial trials with normal objects
-    # tutorial_imgData = [{'Sample': meta[0],
-    #                      'Test': [{'obj':obj} for obj in list(obj_combs[0])]
-    #                      }]#  imgData.append({"Sample": sample_meta_entry, "Test": [test_meta_entry[e] for e in test_objects]})
-    # tutorial_imgFiles = [[meta['url'][0],
-    #                       [get_url_labeled_resp_img(obj) for obj in list(obj_combs[0])]]
-    #                      ] #.append([sample_url, [test_url[e] for e in test_objects]]) for all trials
-    # tutorial_labels = list(obj_combs[0]) # .append(labelfunc(test_meta_entry[e]) for e in test_objects))
-    #
-    #
-    # exp._trials['imgData'] = tutorial_imgData + exp._trials['imgData']
-    # exp._trials['imgFiles'] = tutorial_imgFiles + exp._trials['imgFiles']  # tutorial_imgFiles: list
-    # exp._trials['labels'] = tutorial_labels + exp._trials['labels']
-
-
-    ### Print HIT info ###
+    ### Print HIT info
     print '\n'
     img_url_seq = [i[0] for i in exp._trials['imgFiles']]
-    print 'Unique images to be tested:', len(set(img_url_seq))
+    print 'Unique images to be tested, including tutorial images:', len(set(img_url_seq))
 
     # number of times each unique image is assayed:
     rep_counts = [img_url_seq.count(i) for i in set(img_url_seq)]
@@ -137,72 +203,16 @@ def get_exp(sandbox=True, debug=True, dummy_upload=True):
     print '\n'
 
 
+    print '\nRemaining balance on Amazon account:', exp.getBalance()
+    print 'Expected cost: $', num_HITs_per_confusion * UNIQUE_WORKERS_PER_HIT * exp.reward * len(combs), '\n'
 
 
+    ### Return
     if debug:
         return exp, html_data
 
-
-    ## TODO: use this code to make the tutorial with other kinds of objects.
-
-    # # -- in each HIT, the followings will be repeated 4 times to
-    # # estimate "quality" of data
-    # ind_repeats = [] #[0, 4, 47, 9, 17, 18] * REPEATS_PER_QE_IMG
-    # rng = np.random.RandomState(0)
-    # rng.shuffle(ind_repeats)
-    # trials_qe = {e: [copy.deepcopy(exp._trials[e][r]) for r in ind_repeats]
-    #              for e in exp._trials}
-    #
-    # # -- flip answer choices of some repeated images
-    # n_qe = len(trials_qe['labels'])
-    # # if True, flip
-    # flips = [True] * (n_qe / 2) + [False] * (n_qe - n_qe / 2)
-    # assert len(flips) == n_qe
-    # rng.shuffle(flips)
-    # assert len(trials_qe.keys()) == 4
-    #
-    # for i, flip in enumerate(flips):
-    #     if not flip:
-    #         continue
-    #     trials_qe['imgFiles'][i][1].reverse()
-    #     trials_qe['labels'][i].reverse()
-    #     trials_qe['imgData'][i]['Test'].reverse()
-    #
-    # # -- actual application
-    # offsets = np.arange(
-    #     ACTUAL_TRIALS_PER_HIT - 3, -1,
-    #     -ACTUAL_TRIALS_PER_HIT / float(len(ind_repeats))
-    # ).round().astype('int')
-    # assert len(offsets) == len(offsets)
-    #
-    # n_hits_floor = n_total_trials / ACTUAL_TRIALS_PER_HIT
-    # n_applied_hits = 0
-    # for i_trial_begin in xrange((n_hits_floor - 1) * ACTUAL_TRIALS_PER_HIT,
-    #                             -1, -ACTUAL_TRIALS_PER_HIT):
-    #     for k in trials_qe:
-    #         for i, offset in enumerate(offsets):
-    #             exp._trials[k].insert(i_trial_begin + offset, trials_qe[k][i])
-    #             # exp._trials[k].insert(i_trial_begin + offset, 'test')
-    #     n_applied_hits += 1
-    #
-    # print '** n_applied_hits =', n_applied_hits
-    # print '** len for each in _trials =', \
-    #     {e: len(exp._trials[e]) for e in exp._trials}
-    #
-    # # -- sanity check
-    # assert 50 == n_applied_hits, n_applied_hits
-    # assert len(exp._trials['imgFiles']) == 50 * 164
-    # s_ref_labels = [tuple(e) for e in trials_qe['labels']]
-    # offsets2 = np.arange(24)[::-1] + offsets
-    # ibie = zip(range(0, 50 * 164, 164), range(164, 50 * 164, 164))
-    # assert all(
-    #     [[(e1, e2) for e1, e2 in
-    #      np.array(exp._trials['labels'][ib:ie])[offsets2]] == s_ref_labels
-    #      for ib, ie in ibie])
-    #
-    # # -- drop unneeded, potentially abusable stuffs
-    # #del exp._trials['imgData']
     print '** Finished creating trials.'
+
 
     return exp, html_data
 
@@ -211,25 +221,25 @@ def main(argv=[], partial=False, debug=False):
     sandbox = True
 
     if len(argv) > 1 and argv[1] == 'download':
-    ## Todo: figure this out
         # commandline syntax:
-        # ssh -f -N -L 22334:localhost:22334 <username>@dicarlo5.mit.edu
+        # ssh -f -N -L 22334:localhost:22334 mil@dicarlo5.mit.edu
         # python driver.py download hitidfname.pkl
-        print '\n*** Downloading worker results from mturk and storing in dicarlo5 MongoDB'
-        exp = get_exp(sandbox=sandbox, debug=debug)[0]
+
+        exp = get_exp(sandbox=False, debug=debug)[0] # sandbox must be false
         hitids = pk.load(open(argv[2]))
-        print len(hitids)
+        print '\n*** Downloading ', len(hitids), 'worker results from mturk and storing in dicarlo5 MongoDB'
         exp.updateDBwithHITs(hitids)
-        pk.dump(exp.all_data, open('results.pkl', "wb"))
+        pk.dump(exp.all_data, open(['results_', argv[2], '.pkl', "wb"]))
         return exp
 
 
     if len(argv) > 1 and argv[1] == 'production':
         sandbox = False
         print '** Creating production HITs'
+
     else:
         print '** Sandbox mode'
-        print '** Enter "driver.py production" to publish production HITs.'
+        print '** Enter "[drivername].py production" to publish production HITs.'
 
     exp = get_exp(sandbox=sandbox, debug=debug)[0]
     exp.prepHTMLs()
