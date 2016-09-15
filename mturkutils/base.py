@@ -112,7 +112,7 @@ class Experiment(object):
     Non-MTurk Parameters
     --------------------
     - collection_name: String, name of collection within the 'mturk'
-        database.  If `None`, no DB connection will be made.
+        MongoDB database.  If `None`, no DB connection will be made.
     - comment: Explanation of the task and data format to be included in the
         database for this experiment. The description should be adequate for
         future investigators to understand what you did and what the data
@@ -685,6 +685,318 @@ class Experiment(object):
                     full=full, verbose=verbose)
 
 
+class StimulusResponseExperiment(Experiment):
+    """
+    Creates an SR experiment with the given ``html_data``.
+    """
+
+    def __init__(self, htmlsrc, htmldst, othersrc=None,
+            sandbox=True, keywords=None, lifetime=1209600,
+            max_assignments=1, title='TEST', reward=0.01, duration=1500,
+            approval_delay=172800, description='TEST', frame_height_pix=1000,
+            comment='TEST', meta=None,
+            log_prefix=LOG_PREFIX, section_name=MTURK_CRED_SECTION,
+            bucket_name=None,
+            trials_per_hit=100,
+            tmpdir='tmp',
+            productionpath='html',
+            production_prefix='html',
+            sandboxpath='html_sandbox',
+            sandbox_prefix='html_sandbox',
+            tmpdir_production=None,
+            tmpdir_sandbox=None,
+            trials_loc='trials.pkl',
+            html_data=None,
+            otherrules=None,
+            additionalrules=None,
+            mongo_port=None,
+            mongo_host=None,
+            mongo_dbname=MONGO_DBNAME,
+            collection_name='TEST',
+            other_quals=None,
+            set_destination=False,
+            learningperiod_html_data = None):
+
+        Experiment.__init__(self, htmlsrc, htmldst, othersrc,
+            sandbox, keywords, lifetime,
+            max_assignments, title, reward, duration,
+            approval_delay, description, frame_height_pix,
+            comment, meta,
+            log_prefix, section_name,
+            bucket_name,
+            trials_per_hit,
+            tmpdir,
+            productionpath,
+            production_prefix,
+            sandboxpath,
+            sandbox_prefix,
+            tmpdir_production,
+            tmpdir_sandbox,
+            trials_loc,
+            html_data,
+            otherrules,
+            additionalrules,
+            mongo_port,
+            mongo_host,
+            mongo_dbname,
+            collection_name,
+            other_quals,
+            set_destination)
+
+
+        # Todo: implement learning period
+        if(learningperiod_html_data is not None):
+            self.trials_per_hit = self.trials_per_hit + learningperiod_html_data['tutorial_trials_per_hit']
+            self.learningperiod_html_data = learningperiod_html_data
+
+
+
+    def createTrials(self, sampling='without-replacement', verbose=0):
+        """
+        - Create trials with the given ``html_data``.
+        Html data is a spec that can have the following parameters:
+        :param dummy_upload: If true, image files are assumed to have been uploaded previouls
+        :param preproc: what preproc to use on images
+            (see dldata.stimulus_sets.dataset_templates.ImageLoaderPreprocesser)
+        :param image_bucket_name: what bucket to upload files to
+        :param seed: random seed to use for shuffling
+        :param dataset: which dataset to get images from
+        :param combs: List of tuples of synsets to measure confusions for
+        :param k: Number of times to measure each confusion.
+        :param meta_query: subset the dataset according to this query, evaluated once at every meta entry
+        sampled equally
+        :param: labelfunc: callable that takes a dictionary meta entry and the dataset, and returns the label to be
+            printed
+        :param: response_images: list of
+            tuple of image_urls, imgData, and labels to use for response images. There must be one set
+             of responses per confusion to be measured. If this is not
+                set, random images from the same category are used by default.
+        :param shuffle_response_map: whether to shuffle mapping of objects to key presses on every individual HIT. Otherwise, o1 in comb will _always_ correspond to "up" over all HTMLs.
+        - Parameter ``sampling`` determines the behavior of image sampling:
+          * "without-replacement" (default): no same images will be presented
+            across the entire population of subjects.
+          * "with-replacement": allows recycling of images.
+
+        """
+
+        assert sampling in ['without-replacement', 'with-replacement', 'with-replacement-balanced']
+        html_data = self.html_data
+
+        #preproc = html_data.get('preproc')
+        # dummy_upload = html_data.get('dummy_upload', True)
+        # image_bucket_name = html_data.get('image_bucket_name')
+
+        meta_query = html_data.get('meta_query')
+        meta_field = html_data.get('meta_field')
+        num_trials_per_confusion = html_data['num_trials']
+        response_images = html_data.get('response_images')
+        combs = html_data['combs']
+        labelfunc = html_data.get('labelfunc')
+        seed = html_data.get('seed', 0)  # no need to change most cases
+        urls = html_data.get('urls')
+        meta = html_data.get('meta')
+        shuffle_response_map = html_data.get('shuffle_response_map', False)
+
+        if meta is None:
+            raise ValueError('meta must be defined')
+
+        if meta_query is not None:
+            query_inds = set(np.ravel(np.argwhere(map(meta_query, meta)))) # indices only where meta_query evaluates true on meta.
+        else:
+            query_inds = set(range(len(meta))) # indices covering all of meta.
+
+        category_occurences = Counter(itertools.chain.from_iterable(combs)) # Counter object with each unique category, and the number of their occurences in combs
+        synset_urls = defaultdict(list) # If synset_urls['key'] does not have a key-value pair for 'key', create a list [] as the value.
+        category_meta_dicts = defaultdict(list)
+
+        img_inds = []
+        n_ways_in_confusion = len(list(combs[0])) # n-way confusions to be tested in this task.
+        if response_images is None:
+            num_per_category = int(np.ceil(float(num_trials_per_confusion) / n_ways_in_confusion) * (n_ways_in_confusion + 1))
+            response_images = [None] * len(combs)
+        else:
+            num_per_category = int(np.ceil(float(num_trials_per_confusion) / n_ways_in_confusion))  # k is the number of total trials. n is the number of ways in an n-way task. num_per_category = ('number of trials per way')
+
+        rng = np.random.RandomState(seed=seed)
+        for category in category_occurences.keys(): # for each unique category
+            cat_inds = set(np.ravel(np.argwhere(meta[meta_field] == category))) # Indices for images of this category, i.e. whose meta_field == this category.
+            inds = list(query_inds & cat_inds) # Indices for images of this category, who also pass meta_query.
+
+            # Number of images to sample for this category. = number of times this category shows up in combs, * 1/(n ways) * number of total trials
+            num_sample = category_occurences[category] * num_per_category
+
+            if sampling == 'without-replacement': # Eligible images are presented, at most, once.
+                if len(inds) < num_sample:
+                    raise ValueError(("Category %s has %d images, "
+                            "at least %d are required to sample without replacement.") %
+                            (category, len(inds), num_sample))
+                img_inds.extend(list(
+                    np.array(inds)[rng.permutation(len(inds))[:num_sample]])) # Returns num_samples indices from range(len(eligible_inds)), without replacement.
+
+            elif sampling == 'with-replacement':
+                img_inds.extend(list(
+                    np.array(inds)[rng.randint(len(inds), size=num_sample)])) # Returns random integers from an integer uniform distribution, max-val = len(inds) (i.e., with replacement).
+
+            elif sampling == 'with-replacement-balanced':
+                # When len(inds) < num_samples , but you want to reduce the variance of image index sampling from the uniform distribution.
+                draws_per_image = np.floor(num_sample/len(inds))
+                remainder_draws = np.mod(num_sample, draws_per_image)
+                assert (draws_per_image*len(inds) + remainder_draws == num_sample)
+
+                img_inds.extend(list(inds*draws_per_image)) # Add same number of each image, round robin.
+                img_inds.extend(list(np.array(inds)[rng.randint(len(inds), size=remainder_draws)])) # Draw any remainder from uniform distribution
+
+            else:
+                raise ValueError('Invalid "sampling"')
+
+        #if urls is None: # dldata thing, in which you get urls directly from the stimulus_set object, and not passing in manually to this in html_data
+        #    assert image_bucket_name is not None
+        #    urls = dataset.publish_images(img_inds, preproc,
+        #            image_bucket_name, dummy_upload=dummy_upload)
+        #else:
+        assert len(meta) == len(urls)
+        urls = np.array(urls)[img_inds]
+        assert len(urls) == len(img_inds)
+
+        if verbose > 0:
+            print '** number of ways per confusion, n =', n_ways_in_confusion
+            print '** total number of trials per confusion, k =', num_trials_per_confusion
+            print '** trials per confusion member =', num_per_category
+            #print '** num_sample =', num_sample
+            print '** len(urls) =', len(urls)
+            print '** len(meta) =', len(meta)
+            print '** category_occurences =', category_occurences
+
+
+        ########
+
+        # This loops sets the default order for trials.
+        for url, img_ind in zip(urls, img_inds):
+            meta_entry = meta[img_ind]
+            category = meta_entry[meta_field]
+            synset_urls[category].append(url) # for this image's category (e.g. object), append a url to other urls of this category in the images that are going to be tested.
+            meta_dict = {name: value for name, value in
+                         zip(meta_entry.dtype.names, meta_entry.tolist())}
+            category_meta_dicts[category].append(meta_dict)
+
+        imgs = [] # Trial sequence that subsumes all HITs.
+        labels = [] # Label sequence that subsumes all HITs.
+        imgData = [] # Meta sequence that subsumes all HITs.
+
+
+        n_trials_per_hit = self.trials_per_hit # learning period + experiments
+        if self.learningperiod_html_data is not None:
+            n_learning_trials_per_hit = self.learningperiod_html_data['tutorial_trials_per_hit']
+            print 'Adding', n_learning_trials_per_hit, 'learning trials per HIT.'
+        else:
+            print 'No learning trial period.'
+            n_learning_trials_per_hit = 0
+
+        #### This loop loops through each comb and prepares trials, filling the lists "imgs" and "labels".
+        for comb, c_response_imgs in zip(combs, response_images):
+        # for each comb and its response_images,
+            # c: (obj0, obj1, obj2, obj4)
+            # ri: {}
+
+            response_image_indices = range(len(c_response_imgs['labels']))  # This controls which .html canvas each comb_member corresponds to. 1, 2, 3, 4
+
+            # For a given confusion, this prepares its trials, of which there are 'num_trials_per_confusion' total.
+            for _HIT in np.arange(np.floor(num_trials_per_confusion/(n_trials_per_hit-n_learning_trials_per_hit))):
+                # Shuffle response map for upcoming HIT to be written:
+                if shuffle_response_map:
+                    rng = np.random.RandomState(seed=(seed, _HIT))
+                    rng.shuffle(response_image_indices)
+                # Shuffle non-tutorial trials of HIT just written: (this may or may not be necessary...I think objects/vars are already well-mixed in the first loop.)
+                for all_trials in [imgs, labels, imgData]:
+                    HIT_trials = copy.copy(all_trials[-n_trials_per_hit+n_learning_trials_per_hit:])  # Shuffle experimental trials for the just written HIT only; not learning period trials.
+                    rng = np.random.RandomState(seed=(seed, _HIT))
+                    rng.shuffle(HIT_trials)
+                    all_trials[-n_trials_per_hit+n_learning_trials_per_hit:] = copy.copy(HIT_trials)
+
+
+                learningperiod_html_data = copy.deepcopy(self.learningperiod_html_data) # to use pop syntax when adding learning trials
+                cidx = 0 # to index members of the confusion, in the "else" block.
+
+                for tr in np.arange(n_trials_per_hit):
+                    # Add learning period trials:
+                    if (tr < n_learning_trials_per_hit):
+
+                        sample_url = learningperiod_html_data['sample_urls'].pop(0)
+                        sample_meta = learningperiod_html_data['sample_meta'].pop(0)
+
+                        test_urls = learningperiod_html_data['test_urls']
+                        test_meta_entries = learningperiod_html_data['test_meta_entries']
+                        response_img_labels = learningperiod_html_data['response_img_labels']
+
+                        # Write down one learning period trial:
+                        imgs.append([sample_url, [test_urls[e] for e in range(len(test_urls))]])
+                        imgData.append({
+                            "Sample": sample_meta,
+                            "Test": [test_meta_entries[e] for e in range(len(test_urls))]}) # Effector mappings for same for each HIT.
+                        labels.append([response_img_labels[e] for e in range(len(test_urls))])
+
+
+
+                    # Add regular trials:
+                    else:
+                        comb_member = comb[np.mod(cidx, len(comb))] # Add each member of comb in a round-robin manner.
+                        cidx+=1
+
+                        sample_url = synset_urls[comb_member].pop()
+                        sample_meta = category_meta_dicts[comb_member].pop()
+
+                        test_urls = c_response_imgs['urls']
+                        test_meta_entries = c_response_imgs['meta']
+                        response_img_labels = c_response_imgs['labels']
+
+                        assert len(response_image_indices) == len(test_urls) == len(test_meta_entries)
+
+                        # Write down one prepared trial:
+                        imgs.append([sample_url, [test_urls[e] for e in range(len(test_urls))]]) # TODO: Remove this setup of response images? instead, have immutable response images handled in the .html file. Current hacky solution: response_image_indices for testurls stays the same (as they are arrows).
+                        imgData.append({
+                            "Sample": sample_meta,
+                            "Test": [test_meta_entries[e] for e in response_image_indices]})
+                        labels.append([response_img_labels[e] for e in response_image_indices])
+
+
+                # Print image rep counts for this HIT:
+                if verbose > 2:
+                    hit_img_seq = [i[0] for i in imgs]
+                    hit_img_seq = hit_img_seq[-n_trials_per_hit+n_learning_trials_per_hit:]
+                    print 'Number of unique images in this HIT: ', len(set(hit_img_seq))
+                    print 'Rep count per image: ', [hit_img_seq.count(i) for i in set(hit_img_seq)]
+
+        assert len(imgs) == len(imgData) == len(labels)
+
+        # num_trials_per_confusion+num_learningtiralsperconfusion * len(combs)
+
+        # Shuffles order for ALL prepared trials:
+        # for list_data in [imgs, imgData, labels]:
+        #    rng = np.random.RandomState(seed=seed)
+        #    rng.shuffle(list_data)
+
+        if verbose > 0:
+            print '** max len in remaining synset_urls =', \
+                    sorted([(len(synset_urls[e]), e)
+                        for e in synset_urls])[-1]
+            print '** max len in remaining category_meta_dicts =', \
+                    sorted([(len(category_meta_dicts[e]), e)
+                            for e in category_meta_dicts])[-1]
+        if verbose > 1:
+            print '** len for each in remaining synset_urls =', \
+                    {e: len(synset_urls[e]) for e in synset_urls}
+            print '** len for each in remaining category_meta_dicts =', \
+                    {e: len(category_meta_dicts[e])
+                            for e in category_meta_dicts}
+        if verbose > 2:
+            print '** synset_urls =', synset_urls
+            print '** category_meta_dicts =', category_meta_dicts
+
+        self._trials = {'imgFiles': imgs, 'imgData': imgData, 'labels': labels,
+                               'meta_field': [meta_field] * len(labels)}
+
+
+
 class MatchToSampleFromDLDataExperiment(Experiment):
     """
     Creates an experiment with the given ``html_data``.  Although the class
@@ -727,7 +1039,7 @@ class MatchToSampleFromDLDataExperiment(Experiment):
         dataset = html_data.get('dataset')
         preproc = html_data.get('preproc')
         meta_query = html_data.get('meta_query')
-        meta_field = html_data.get('meta_field', 'category')
+        meta_field = html_data.get('meta_field', 'category') # Returns category if 'meta_field' is not a key.
         k = html_data['num_trials']
         response_images = html_data.get('response_images')
         dummy_upload = html_data.get('dummy_upload', True)
@@ -774,11 +1086,11 @@ class MatchToSampleFromDLDataExperiment(Experiment):
                             "%d are required for this experiment") %
                             (category, len(inds), num_sample))
                 img_inds.extend(list(
-                    np.array(inds)[rng.permutation(len(inds))[:num_sample]]))
+                    np.array(inds)[rng.permutation(len(inds))[:num_sample]])) # Returns permuted range(len(inds)).
 
             elif sampling == 'with-replacement':
                 img_inds.extend(list(
-                    np.array(inds)[rng.randint(len(inds), size=num_sample)]))
+                    np.array(inds)[rng.randint(len(inds), size=num_sample)])) # Returns random integers from an integer uniform distribution, max-val = len(inds)
 
             else:
                 raise ValueError('Invalid "sampling"')
