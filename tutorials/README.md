@@ -87,7 +87,7 @@ Next, you can get the data like this:
 ```python
 import pymongo
 
-mongo_conn = pymongo.Connection(host='localhost', port=22334)
+mongo_conn = pymongo.MongoClient(host='localhost', port=22334)
 db = mongo_conn['mturk']
 coll = db['your_collection_name']
 
