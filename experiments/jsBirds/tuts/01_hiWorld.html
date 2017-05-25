@@ -1,0 +1,30 @@
+<html>
+<head>
+<script>
+// BEGIN OF JAVASCRIPT SECTION
+var flag = false;
+
+function update() {
+    console.log('clicked!!');
+    if (!flag) {
+        document.getElementById("work_area").innerHTML = 'this code works, bitches!';
+        flag = true;
+    }
+    else {
+        document.getElementById("work_area").innerHTML = '';
+        flag = false;
+    }
+
+
+}
+// END OF JAVASCRIPT SECTION
+</script>
+</head>
+<body>
+<button id="begintask" value="Begin!" style="height:30px; width:70px;" onclick="update();" >Begin!</button>
+<div id="work_area">
+</div>
+</body>
+</html>
+
+

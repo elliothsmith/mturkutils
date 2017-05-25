@@ -1,0 +1,56 @@
+<html>
+<head>
+<link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.8.0.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+<script>
+// BEGIN OF JAVASCRIPT SECTION
+// Target image: http://dicarlolab.mit.edu/sites/dicarlolab.mit.edu/files/IMG_0493.JPG
+// For RSVP ------------- 
+// Fixation dot: https://s3.amazonaws.com/task_images/fixation_360x360.png
+// Blank: https://s3.amazonaws.com/task_images/blank_360x360.png
+
+// [20170519] EHS comments/notes: the first three functions set up the images and the update function executes them upon the button press. 
+
+
+function show_img() {
+    $("#img_area").attr('src', '5grand.jpg');  // local source is the default
+    setTimeout(show_blank, 100);
+}
+function show_blank() {
+    $("#img_area").attr('src', 'http://s3.amazonaws.com/task_images/blank_360x360.png');
+    setTimeout(hello_world, 500);
+}
+function hello_world() {
+    $("#work_area").html('you should have seen $5,000');
+}
+function update() {
+    console.log('clicked!!');
+    $("#work_area").html('');
+    $("#img_area").attr('src', 'https://s3.amazonaws.com/task_images/fixation_360x360.png');
+    setTimeout(show_img, 500);
+}
+
+// [20170519] ok weird, java runs backwards, kind of. 
+// the button is made at the end of the script. 
+// the update function sets up the fixation point
+// then the image is shown
+// then the blank is shown
+// thne hello world, but I'm not quite getting where thoese functions come into play. 
+// it must be the empty single quotes in the third line? nope. I shoul dlook into jQuery more...
+// okay. apparently this is not the way to do this, but jsut instructional. On to lesson 3...
+
+
+// END OF JAVASCRIPT SECTION
+</script>
+</head>
+<body bgcolor='#7f7f7f'>
+<button id="begintask" value="Begin!" style="height:30px; width:70px;" onclick="update();" >Begin!</button>
+<div>
+    <img id="img_area" src="" />
+</div>
+<div id="work_area">
+</div>
+</body>
+</html>
+

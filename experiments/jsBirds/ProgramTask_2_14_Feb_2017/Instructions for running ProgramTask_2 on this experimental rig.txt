@@ -1,0 +1,56 @@
+Instructions for running ProgramTask4 on this experimental rig
+
+!!! IMPORTANT , to run the most recent version of the task look at the instructions at the bottom of this page
+
+1. Go to Start button, then Control Panel, then Hardware and Sound, then Display, then Change Display settings
+then ensure that 
+Display is 2. VE248
+Resolution is 1920 x 1080
+Orientation is Landscape
+Multiple displays is 'Extend these displays'
+AND it is set to 'This is currently your main display'
+(also check that the other display is 1.Dell P2314H and its resolution is 1920 x 1080 (recommended))
+If this is not the configuration, then change it so that it becomes the configuration
+
+(If the other monitor is KVM Monitor, this is a mistake to do with the KVM switch - the silver button we use to switch between the monitors.
+If this happens, try restarting the behavioral computer so that the correct two monitors come up.
+If it can't be fixed, it may still be possible to run the task with KVM Monitor and VE248, just check whether the text on the 
+instruction screens fits within the window or if it is cropped. If it is slightly cropped, but still possible to 
+work out what the instructions say, then go ahead with the task).
+
+
+%% ~~~~~~~~~~~~ quick ref
+subject_id = 1; 
+enter do_practice = true;
+recording_flag = true;
+dev_string = 'Dev1';
+ProgramTask(subject_id, do_practice, recording_flag, dev_string);
+
+
+
+1. Double click on Matlab icon (R2010a) or search for Matlab R2010a in the Start menu if not available on the desktop
+
+3. at the matlab command line enter cd C:\Users\User\Documents\MATLAB\ProgramTask4 and hit return
+
+4. check this worked by entering pwd and then return, it should display the file path above
+
+5. enter subject_id = 68 (for example); then hit return, then enter do_practice = true; then return, 
+then enter recording_flag = true; then return, then enter dev_string = 'Dev1'; and then return
+
+6. enter ProgramTask(subject_id, do_practice, recording_flag, dev_string); and then return
+
+7. After you have finished, remember to end the deep mind task recording and restart the chronic recording
+
+
+INSTRUCTIONS AS OF 14 FEB 2017
+
+1. Do step 1 at the top of the page 
+2. Do step 1 at the middle of the page (i.e. "Double click on Matlab.."), plus ensure that ProgramTask_2_14_Feb_2017 folder
+and all subfolders are on the matlab path (see Set path) and ensure that ProgramTask4 and subfolders and ProgramTask3 and subfolders are not
+3. at the matlab command line enter cd C:\Users\User\Documents\MATLAB\ProgramTask_2_14_Feb_2017 and hit return
+4. Do step 4 above
+5. enter subject_id = 68 (for example), then hit return, then enter task_mode = 'practice' (or 'refresher' or 'full_task' or 'simple_task' or
+whichever is appropriate), also enter dev_string = 'Dev1', and return and recording_flag = true and return
+6. enter ProgramTask(subject_id, task_mode, recording_flag, dev_string) and then return
+7. Do step 7 
+
